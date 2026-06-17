@@ -121,12 +121,12 @@ const Index = () => {
         <div className="grid md:grid-cols-2 gap-4">
           {[
             {
-              icon: Zap,
+              icon: ZapIcon,
               title: 'Instant Settlement',
               desc: 'Payments settle on the Lightning Network in seconds. No waiting, no intermediaries.',
             },
             {
-              icon: Wallet,
+              icon: Wallet01Icon,
               title: 'Any Lightning Wallet',
               desc: 'Payers can use Wallet of Satoshi, Phoenix, Breez, Alby, or any BOLT11-compatible wallet.',
             },
@@ -136,7 +136,7 @@ const Index = () => {
               desc: 'Payers just scan and pay — no account creation, no Nostr login required.',
             },
             {
-              icon: List,
+              icon: LeftToRightListBulletIcon,
               title: 'Built-in Ledger',
               desc: 'All received zaps are recorded in your personal ledger with payer info and timestamps.',
             },

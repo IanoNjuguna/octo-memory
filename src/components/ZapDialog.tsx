@@ -42,11 +42,11 @@ interface ZapDialogProps {
 }
 
 const presetAmounts = [
-  { amount: 1, icon: Sparkle },
-  { amount: 50, icon: Sparkles },
-  { amount: 100, icon: Zap },
-  { amount: 250, icon: Star },
-  { amount: 1000, icon: Rocket },
+  { amount: 1, icon: StarIcon },
+  { amount: 50, icon: StarIcon },
+  { amount: 100, icon: ZapIcon },
+  { amount: 250, icon: StarIcon },
+  { amount: 1000, icon: Rocket01Icon },
 ];
 
 interface ZapContentProps {

@@ -27,9 +27,9 @@ type Mode = 'nostr' | 'guest';
 const presetAmounts = [
   { amount: 1, icon: StarIcon, label: '1' },
   { amount: 50, icon: StarIcon, label: '50' },
-  { amount: 100, icon: Zap, label: '100' },
-  { amount: 250, icon: Star, label: '250' },
-  { amount: 1000, icon: Rocket, label: '1k' },
+  { amount: 100, icon: ZapIcon, label: '100' },
+  { amount: 250, icon: StarIcon, label: '250' },
+  { amount: 1000, icon: Rocket01Icon, label: '1k' },
 ];
 
 // ─── Shared: Invoice display, QR, copy, deep-link ──────────────────────
