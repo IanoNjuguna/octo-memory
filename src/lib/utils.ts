@@ -9,10 +9,19 @@ export function cn(...inputs: ClassValue[]) {
 const CORS_PROXY = 'https://proxy.shakespeare.diy/?url=';
 
 /**
- * Fetch through the CORS proxy. Use for cross-origin LNURL/API calls
- * that may not have CORS headers configured.
+ * Fetch, trying direct first (most LNURL services support CORS),
+ * falling back to the CORS proxy if the direct request is blocked.
  */
-export function proxiedFetch(url: string, init?: RequestInit): Promise<Response> {
+export async function proxiedFetch(url: string, init?: RequestInit): Promise<Response> {
+  // Try direct first — Alby, LNbits, and most LNURL services have CORS headers
+  try {
+    const direct = await fetch(url, init);
+    if (direct.ok || direct.status >= 400) return direct;
+  } catch {
+    // Direct fetch blocked (likely CORS) — fall through to proxy
+  }
+
+  // Fall back to CORS proxy
   return fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, init);
 }
 

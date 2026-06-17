@@ -59,9 +59,10 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
       try {
         const res = await proxiedFetch(lnurlpUrl);
         if (!res.ok) {
-          throw new Error(
-            `Lightning address not found (HTTP ${res.status}). Check that your address is correct.`,
-          );
+          const hint = res.status === 404
+            ? `"${parsed.name}@${parsed.domain}" could not be found. Make sure this is your real Lightning address (e.g., from Alby or LNbits), not the placeholder.`
+            : `Check that your address is correct (HTTP ${res.status}).`;
+          throw new Error(hint);
         }
         const data = await res.json();
         if (data.status === 'ERROR') {
