@@ -4,8 +4,19 @@ ZapQR lets you receive **Bitcoin Lightning micropayments** ("zaps") by generatin
 a QR code that anyone with a Lightning wallet can scan and pay.
 
 Built on the [Nostr protocol](https://nostr.com) and [NIP-57](https://github.com/nostr-protocol/nips/blob/master/57.md)
-zap standard, it requires **no backend server** — just a Nostr account with a
-Lightning address.
+zap standard, it requires **no backend server**.
+
+## Two Ways to Receive
+
+| | Nostr Mode | Guest Mode |
+|---|---|---|
+| **Login required** | Yes — Nostr account | No |
+| **Auto payment detection** | ✅ (1–5 seconds) | ❌ (manual confirmation) |
+| **Transaction ledger** | ✅ | ❌ |
+| **Payer identity** | Yes (Nostr pubkey) | No |
+
+**Guest mode** is perfect for one-off payments — paste any Lightning address,
+generate a QR, get paid. No signup needed.
 
 ## How It Works
 

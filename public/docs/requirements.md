@@ -2,9 +2,15 @@
 
 ## For Recipients (you)
 
+### Nostr Mode
 - A **Nostr account** with a Lightning address (`lud16` or `lud06`) in your profile
 - A **modern web browser** (Chrome, Firefox, Safari, Edge)
 - An **internet connection** to reach Nostr relays
+
+### Guest Mode
+- A **Lightning address** (e.g., `you@getalby.com`) — no Nostr account needed
+- A **modern web browser**
+- An **internet connection**
 
 ## For Payers (send you money)
 

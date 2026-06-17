@@ -1,8 +1,8 @@
 # Payment Status
 
-After generating an invoice, ZapQR monitors Nostr relays for confirmation.
+After generating an invoice, ZapQR monitors for payment confirmation.
 
-## Status States
+## Nostr Mode (Auto-Detection)
 
 ### 🟡 Awaiting Payment
 
@@ -38,6 +38,21 @@ ZapQR uses two methods in parallel:
 
 The Nostr subscription detects payments almost instantly. Polling catches
 any receipts that may have been missed (e.g., during a connectivity blip).
+
+## Guest Mode (Manual Confirmation)
+
+In Guest mode, ZapQR can't automatically detect payments because there's no
+Nostr relay subscription. Instead:
+
+1. **Generate the QR** and share it with the payer
+2. **Check your Lightning wallet** for the incoming payment
+3. **Tap "I Received the Payment"** to confirm
+
+The QR and invoice remain valid until their expiry (~1 hour). You can generate
+a new invoice at any time.
+
+> 💡 **Tip:** For automatic detection and a full transaction history, use
+> [Nostr mode](getting-started.md#nostr-mode-auto-detection--ledger).
 
 ---
 

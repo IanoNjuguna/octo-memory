@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, RefreshCw, User, Globe } from 'lucide-react';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,10 +15,14 @@ import { useNostr } from '@nostrify/react';
 import { useZaps } from '@/hooks/useZaps';
 import { useWallet } from '@/hooks/useWallet';
 import { useZapSettlement } from '@/hooks/useZapSettlement';
+import { useGuestInvoice } from '@/hooks/useGuestInvoice';
 import { PaymentStatusOverlay } from '@/components/PaymentStatusOverlay';
 import { LoginArea } from '@/components/auth/LoginArea';
 import type { Event } from 'nostr-tools';
+import type { SettlementStatus } from '@/hooks/useZapSettlement';
 import QRCode from 'qrcode';
+
+type Mode = 'nostr' | 'guest';
 
 const presetAmounts = [
   { amount: 1, icon: Sparkle, label: '1' },
@@ -28,318 +32,149 @@ const presetAmounts = [
   { amount: 1000, icon: Rocket, label: '1k' },
 ];
 
-export default function ReceiveZapPage() {
-  useSeoMeta({
-    title: 'Receive Zaps — ZapQR',
-    description: 'Generate a Lightning invoice QR code and receive Bitcoin micropayments instantly.',
-  });
+// ─── Shared: Invoice display, QR, copy, deep-link ──────────────────────
 
-  const { user } = useCurrentUser();
-  const { data: author, isLoading: authorLoading } = useAuthor(user?.pubkey ?? '');
+function InvoiceDisplay({
+  invoice,
+  amount,
+  comment,
+  qrCodeUrl,
+  settlementStatus,
+  settlementError,
+  receipt,
+  onReset,
+  onCheckNow,
+  isGuest,
+  onGuestConfirm,
+  guestConfirmed,
+}: {
+  invoice: string;
+  amount: number | string;
+  comment: string;
+  qrCodeUrl: string;
+  settlementStatus: SettlementStatus;
+  settlementError: string | null;
+  receipt: { id: string; created_at: number } | null;
+  onReset: () => void;
+  onCheckNow: () => void;
+  isGuest: boolean;
+  onGuestConfirm: () => void;
+  guestConfirmed: boolean;
+}) {
   const { toast } = useToast();
-  const { nostr } = useNostr();
-  const { webln, activeNWC } = useWallet();
-
-  const [amount, setAmount] = useState<number | string>(100);
-  const [comment, setComment] = useState('');
   const [copied, setCopied] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [zapRequestId, setZapRequestId] = useState<string | null>(null);
-
-  // Create a stable minimal target for useZaps — it uses the author's kind-0
-  // for LNURL resolution, so we just need the pubkey.
-  const targetEvent: Event = {
-    pubkey: user?.pubkey ?? '',
-    id: user?.pubkey ?? '', // non-empty so useZaps doesn't think target is null
-    kind: 0,
-    content: '',
-    tags: [],
-    created_at: Math.floor(Date.now() / 1000),
-    sig: '',
-  };
-
-  // useZaps handles invoice generation via LNURL-pay
-  const { zap, isZapping, invoice, resetInvoice } = useZaps(
-    user ? targetEvent : [],
-    webln,
-    activeNWC,
-  );
-
-  // Real-time settlement detection
-  const {
-    status: settlementStatus,
-    receipt,
-    error: settlementError,
-    checkNow,
-    expire: expireSettlement,
-    reset: resetSettlement,
-  } = useZapSettlement({ zapRequestId });
-
-  // Generate QR code when invoice changes
-  useEffect(() => {
-    let cancelled = false;
-
-    const generate = async () => {
-      if (!invoice) {
-        setQrCodeUrl('');
-        return;
-      }
-      try {
-        const url = await QRCode.toDataURL(invoice.toUpperCase(), {
-          width: 512,
-          margin: 2,
-          color: { dark: '#000000', light: '#FFFFFF' },
-        });
-        if (!cancelled) setQrCodeUrl(url);
-      } catch (err) {
-        console.error('QR generation failed:', err);
-      }
-    };
-
-    generate();
-    return () => { cancelled = true; };
-  }, [invoice]);
-
-  const handleGenerate = useCallback(async () => {
-    const sats = typeof amount === 'string' ? parseInt(amount, 10) : amount;
-    if (!sats || sats <= 0) {
-      toast({
-        title: 'Invalid amount',
-        description: 'Please enter a valid amount in satoshis.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Store zap request ID for settlement tracking
-    // useZaps internally creates the zap request and calls LNURL endpoint
-    // We hook into it by calling zap() and then watching for the invoice
-    resetSettlement();
-    setZapRequestId(null);
-    setQrCodeUrl('');
-
-    // The zap function calls the LNURL endpoint, sets the invoice
-    // We need to extract the zap request ID from what useZaps does internally.
-    // Since useZaps doesn't expose the zap request ID directly, we track it
-    // via a side-channel: we'll re-derive it from the user's signer in a useEffect
-    await zap(sats, comment || 'Zap via ZapQR');
-  }, [amount, comment, zap, resetSettlement, toast]);
-
-  // After invoice is created, query relays for the signed zap request (kind-9734).
-  // The LNURL service publishes the zap request to relays, and we need its event ID
-  // to subscribe to kind-9735 receipts. We look for the most recent kind-9734 from
-  // the current user created in the last 60 seconds.
-  useEffect(() => {
-    if (!invoice || !user?.pubkey || !nostr || zapRequestId) return;
-
-    let cancelled = false;
-
-    const lookup = async () => {
-      try {
-        const events = await nostr.query(
-          [{
-            kinds: [9734],
-            authors: [user.pubkey],
-            since: Math.floor(Date.now() / 1000) - 60,
-            limit: 5,
-          }],
-          { signal: AbortSignal.timeout(10000) },
-        );
-
-        if (cancelled) return;
-
-        // Pick the most recent zap request
-        if (events.length > 0) {
-          const latest = events.reduce((a, b) => (a.created_at > b.created_at ? a : b));
-          setZapRequestId(latest.id);
-        }
-      } catch (err) {
-        console.warn('Could not find zap request on relays:', err);
-        // Fallback: still allow settlement checking via polling
-      }
-    };
-
-    lookup();
-    return () => { cancelled = true; };
-  }, [invoice, user?.pubkey, nostr, zapRequestId]);
 
   const handleCopy = async () => {
-    if (!invoice) return;
     await navigator.clipboard.writeText(invoice);
     setCopied(true);
     toast({ title: 'Invoice copied', description: 'Paste it into any Lightning wallet to pay.' });
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleOpenWallet = () => {
-    if (!invoice) return;
-    window.open(`lightning:${invoice}`, '_blank');
-  };
+  const handleOpenWallet = () => window.open(`lightning:${invoice}`, '_blank');
 
-  const handleReset = () => {
-    resetInvoice();
-    resetSettlement();
-    setZapRequestId(null);
-    setQrCodeUrl('');
-  };
-
-  // Not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="max-w-md w-full text-center border-dashed">
-          <CardHeader>
-            <CardTitle>Log in to Receive Zaps</CardTitle>
-            <CardDescription>
-              You need a Nostr account with a Lightning address to generate payment QR codes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            <LoginArea className="w-full max-w-60" />
-            <p className="text-xs text-muted-foreground">
-              New to Nostr? Create an account and set up a Lightning address (like Alby or LNbits) to start receiving payments.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Loading profile
-  if (authorLoading) {
-    return (
-      <div className="min-h-screen max-w-lg mx-auto px-4 py-12 space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-4 w-72" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-      </div>
-    );
-  }
-
-  // No Lightning address configured
-  if (!author?.metadata?.lud16 && !author?.metadata?.lud06) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="max-w-md w-full text-center border-dashed">
-          <CardHeader>
-            <CardTitle>Lightning Address Required</CardTitle>
-            <CardDescription>
-              You need a Lightning address (lud16) in your Nostr profile to generate payment invoices.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Set up a free Lightning address with{' '}
-              <a
-                href="https://getalby.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80"
-              >
-                Alby
-              </a>
-              {' '}or{' '}
-              <a
-                href="https://lnbits.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-primary hover:text-primary/80"
-              >
-                LNbits
-              </a>
-              , then update your Nostr profile.
-            </p>
-            <Button variant="outline" asChild>
-              <a href="/settings" rel="nofollow">Edit Profile</a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const displayAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
 
   return (
-    <div className="min-h-screen max-w-lg mx-auto px-4 py-8 md:py-12 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Receive Zaps</h1>
-        <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-          Generate a Lightning invoice QR code. Anyone with a Lightning wallet can scan and pay instantly.
-        </p>
-      </div>
+    <Card>
+      <CardContent className="pt-6 space-y-6">
+        <div className="flex items-center">
+          <Button variant="ghost" size="sm" onClick={onReset}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            New Invoice
+          </Button>
+        </div>
 
-      {/* Invoice Display (when active) */}
-      {invoice ? (
-        <Card>
-          <CardContent className="pt-6 space-y-6">
-            {/* Back button */}
-            <div className="flex items-center">
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                New Invoice
-              </Button>
-            </div>
+        <div className="text-center">
+          <p className="text-3xl font-bold">{displayAmount} sats</p>
+          {comment && <p className="text-sm text-muted-foreground mt-1">{comment}</p>}
+        </div>
 
-            {/* Amount */}
-            <div className="text-center">
-              <p className="text-3xl font-bold">{amount} sats</p>
-              {comment && (
-                <p className="text-sm text-muted-foreground mt-1">{comment}</p>
-              )}
-            </div>
+        <Separator />
 
-            <Separator />
-
-            {/* QR Code */}
-            <div className="flex justify-center">
-              <Card className="p-3 max-w-[85vw] md:max-w-[320px]">
-                <CardContent className="p-0 flex justify-center">
-                  {qrCodeUrl ? (
-                    <img
-                      src={qrCodeUrl}
-                      alt="Lightning Invoice QR Code"
-                      className="w-full h-auto aspect-square object-contain rounded"
-                    />
-                  ) : (
-                    <Skeleton className="w-full aspect-square rounded" />
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  value={invoice}
-                  readOnly
-                  className="font-mono text-xs flex-1 truncate"
-                  onClick={(e) => e.currentTarget.select()}
-                  aria-label="Lightning invoice"
+        <div className="flex justify-center">
+          <Card className="p-3 max-w-[85vw] md:max-w-[320px]">
+            <CardContent className="p-0 flex justify-center">
+              {qrCodeUrl ? (
+                <img
+                  src={qrCodeUrl}
+                  alt="Lightning Invoice QR Code"
+                  className="w-full h-auto aspect-square object-contain rounded"
                 />
-                <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
-                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                </Button>
-              </div>
-              <Button variant="outline" onClick={handleOpenWallet} className="w-full" size="lg">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open in Lightning Wallet
-              </Button>
-              <p className="text-xs text-center text-muted-foreground">
-                Scan the QR code or copy the invoice to pay with any Lightning wallet.
-              </p>
-            </div>
+              ) : (
+                <Skeleton className="w-full aspect-square rounded" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-            {/* Settlement Status */}
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              value={invoice}
+              readOnly
+              className="font-mono text-xs flex-1 truncate"
+              onClick={(e) => e.currentTarget.select()}
+              aria-label="Lightning invoice"
+            />
+            <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+              {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
+          <Button variant="outline" onClick={handleOpenWallet} className="w-full" size="lg">
+            <ExternalLink className="h-4 w-4 mr-2" />
+            Open in Lightning Wallet
+          </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            Scan the QR code or copy the invoice to pay with any Lightning wallet.
+          </p>
+        </div>
+
+        {/* Guest: manual confirmation */}
+        {isGuest && !guestConfirmed && settlementStatus !== 'received' && (
+          <Card className="border-dashed bg-muted/30">
+            <CardContent className="pt-4 text-center space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Guest mode can't auto-detect payment. Tap below once you see the sats arrive in your wallet.
+              </p>
+              <Button
+                onClick={onGuestConfirm}
+                variant="default"
+                className="gap-2"
+              >
+                <Check className="h-4 w-4" />
+                I Received the Payment
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Guest: confirmed */}
+        {isGuest && guestConfirmed && (
+          <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50 p-4 text-center">
+            <Check className="h-8 w-8 mx-auto text-green-600 dark:text-green-400 mb-2" />
+            <p className="font-semibold text-green-900 dark:text-green-100">Payment Confirmed</p>
+            <p className="text-sm text-green-700 dark:text-green-300 mt-1">{displayAmount} sats received</p>
+            <button
+              type="button"
+              onClick={onReset}
+              className="mt-3 text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-300 dark:hover:text-green-200 underline underline-offset-2"
+            >
+              Generate another
+            </button>
+          </div>
+        )}
+
+        {/* Nostr: settlement status */}
+        {!isGuest && (
+          <>
             <PaymentStatusOverlay
               status={settlementStatus}
-              amount={typeof amount === 'string' ? parseInt(amount, 10) : amount}
+              amount={displayAmount}
               error={settlementError}
-              onReset={handleReset}
-              onCheckNow={checkNow}
+              onReset={onReset}
+              onCheckNow={onCheckNow}
             />
-
-            {/* Receipt details */}
             {receipt && (
               <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/30">
                 <CardContent className="pt-4 text-sm space-y-1">
@@ -353,97 +188,488 @@ export default function ReceiveZapPage() {
                 </CardContent>
               </Card>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        /* Zap Generation Form */
-        <Card>
-          <CardHeader>
-            <CardTitle>Create Zap Invoice</CardTitle>
-            <CardDescription>
-              Choose an amount below or enter a custom one. The payer scans the QR to send sats.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {/* Amount Presets */}
-            <ToggleGroup
-              type="single"
-              value={String(amount)}
-              onValueChange={(v) => v && setAmount(parseInt(v, 10))}
-              className="grid grid-cols-5 gap-1"
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Amount + comment form (shared) ────────────────────────────────────
+
+function ZapForm({
+  amount,
+  setAmount,
+  comment,
+  setComment,
+  isLoading,
+  onGenerate,
+  footer,
+}: {
+  amount: number | string;
+  setAmount: (v: number | string) => void;
+  comment: string;
+  setComment: (v: string) => void;
+  isLoading: boolean;
+  onGenerate: () => void;
+  footer?: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Create Zap Invoice</CardTitle>
+        <CardDescription>
+          Choose an amount below or enter a custom one. The payer scans the QR to send sats.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <ToggleGroup
+          type="single"
+          value={String(amount)}
+          onValueChange={(v) => v && setAmount(parseInt(v, 10))}
+          className="grid grid-cols-5 gap-1"
+        >
+          {presetAmounts.map(({ amount: p, icon: Icon, label }) => (
+            <ToggleGroupItem
+              key={p}
+              value={String(p)}
+              className="flex flex-col h-auto min-w-0 text-xs px-1 py-2"
+              aria-label={`${label} satoshis`}
             >
-              {presetAmounts.map(({ amount: p, icon: Icon, label }) => (
-                <ToggleGroupItem
-                  key={p}
-                  value={String(p)}
-                  className="flex flex-col h-auto min-w-0 text-xs px-1 py-2"
-                  aria-label={`${label} satoshis`}
+              <Icon className="h-4 w-4 mb-1" />
+              <span>{label}</span>
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-muted" />
+          <span className="text-xs text-muted-foreground">OR</span>
+          <div className="h-px flex-1 bg-muted" />
+        </div>
+
+        <Input
+          id="custom-amount"
+          type="number"
+          placeholder="Custom amount (sats)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          min={1}
+          className="w-full"
+        />
+
+        <Textarea
+          id="comment"
+          placeholder="Add a message (optional)"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="w-full resize-none"
+          rows={2}
+        />
+
+        <Button onClick={onGenerate} disabled={isLoading} className="w-full" size="lg">
+          {isLoading ? (
+            <>
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              Creating Invoice...
+            </>
+          ) : (
+            <>
+              <Zap className="h-4 w-4 mr-2" />
+              Generate QR Code
+            </>
+          )}
+        </Button>
+
+        {footer}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────
+
+export default function ReceiveZapPage() {
+  useSeoMeta({
+    title: 'Receive Zaps — ZapQR',
+    description: 'Generate a Lightning invoice QR code and receive Bitcoin micropayments instantly.',
+  });
+
+  const { user } = useCurrentUser();
+  const { data: author, isLoading: authorLoading } = useAuthor(user?.pubkey ?? '');
+  const { toast } = useToast();
+  const { nostr } = useNostr();
+  const { webln, activeNWC } = useWallet();
+
+  const [mode, setMode] = useState<Mode>(user ? 'nostr' : 'guest');
+  const [amount, setAmount] = useState<number | string>(100);
+  const [comment, setComment] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [zapRequestId, setZapRequestId] = useState<string | null>(null);
+
+  // ── Nostr mode ──────────────────────────────────────────────────
+  const targetEvent: Event = {
+    pubkey: user?.pubkey ?? '',
+    id: user?.pubkey ?? '',
+    kind: 0,
+    content: '',
+    tags: [],
+    created_at: Math.floor(Date.now() / 1000),
+    sig: '',
+  };
+
+  const { zap, isZapping, invoice: nostrInvoice, resetInvoice } = useZaps(
+    mode === 'nostr' && user ? targetEvent : [],
+    webln,
+    activeNWC,
+  );
+
+  const {
+    status: nostrSettlementStatus,
+    receipt,
+    error: nostrSettlementError,
+    checkNow,
+    reset: resetNostrSettlement,
+  } = useZapSettlement({ zapRequestId: mode === 'nostr' ? zapRequestId : null });
+
+  // ── Guest mode ──────────────────────────────────────────────────
+  const [guestLud16, setGuestLud16] = useState('');
+  const {
+    invoice: guestInvoice,
+    isLoading: guestLoading,
+    error: guestError,
+    generate: guestGenerate,
+    reset: guestReset,
+    confirmPayment: guestConfirm,
+    isConfirmed: guestConfirmed,
+  } = useGuestInvoice();
+
+  // ── Shared invoice state ────────────────────────────────────────
+  const invoice = mode === 'nostr' ? nostrInvoice : guestInvoice;
+  const settlementStatus: SettlementStatus = (() => {
+    if (mode === 'guest') {
+      if (guestConfirmed) return 'received';
+      if (guestError) return 'error';
+      if (guestInvoice) return 'awaiting';
+      return 'idle';
+    }
+    return nostrSettlementStatus;
+  })();
+  const settlementError = mode === 'nostr' ? nostrSettlementError : guestError;
+
+  // ── QR generation ──────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const generate = async () => {
+      if (!invoice) { setQrCodeUrl(''); return; }
+      try {
+        const url = await QRCode.toDataURL(invoice.toUpperCase(), {
+          width: 512, margin: 2,
+          color: { dark: '#000000', light: '#FFFFFF' },
+        });
+        if (!cancelled) setQrCodeUrl(url);
+      } catch (err) { console.error('QR generation failed:', err); }
+    };
+    generate();
+    return () => { cancelled = true; };
+  }, [invoice]);
+
+  // ── Nostr: look up zap request ID after invoice is created ─────
+  useEffect(() => {
+    if (mode !== 'nostr' || !nostrInvoice || !user?.pubkey || !nostr || zapRequestId) return;
+    let cancelled = false;
+    const lookup = async () => {
+      try {
+        const events = await nostr.query(
+          [{ kinds: [9734], authors: [user.pubkey], since: Math.floor(Date.now() / 1000) - 60, limit: 5 }],
+          { signal: AbortSignal.timeout(10000) },
+        );
+        if (cancelled) return;
+        if (events.length > 0) {
+          const latest = events.reduce((a, b) => (a.created_at > b.created_at ? a : b));
+          setZapRequestId(latest.id);
+        }
+      } catch (err) { console.warn('Could not find zap request on relays:', err); }
+    };
+    lookup();
+    return () => { cancelled = true; };
+  }, [nostrInvoice, user?.pubkey, nostr, zapRequestId, mode]);
+
+  // ── Handlers ───────────────────────────────────────────────────
+  const handleNostrGenerate = useCallback(async () => {
+    const sats = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+    if (!sats || sats <= 0) {
+      toast({ title: 'Invalid amount', description: 'Please enter a valid amount in satoshis.', variant: 'destructive' });
+      return;
+    }
+    resetNostrSettlement();
+    setZapRequestId(null);
+    setQrCodeUrl('');
+    await zap(sats, comment || 'Zap via ZapQR');
+  }, [amount, comment, zap, resetNostrSettlement, toast]);
+
+  const handleGuestGenerate = useCallback(async () => {
+    const sats = typeof amount === 'string' ? parseInt(amount, 10) : amount;
+    if (!sats || sats <= 0) {
+      toast({ title: 'Invalid amount', description: 'Please enter a valid amount in satoshis.', variant: 'destructive' });
+      return;
+    }
+    if (!guestLud16.trim()) {
+      toast({ title: 'Lightning address required', description: 'Enter your Lightning address (e.g., you@getalby.com).', variant: 'destructive' });
+      return;
+    }
+    setQrCodeUrl('');
+    await guestGenerate(guestLud16.trim(), sats);
+  }, [amount, guestLud16, guestGenerate, toast]);
+
+  const handleReset = () => {
+    if (mode === 'nostr') {
+      resetInvoice();
+      resetNostrSettlement();
+      setZapRequestId(null);
+    } else {
+      guestReset();
+    }
+    setQrCodeUrl('');
+  };
+
+  // ── Render ─────────────────────────────────────────────────────
+
+  return (
+    <div className="min-h-screen max-w-lg mx-auto px-4 py-8 md:py-12 space-y-6">
+      {/* Header + mode toggle */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Receive Zaps</h1>
+        <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+          Generate a Lightning invoice QR code. Anyone with a Lightning wallet can scan and pay instantly.
+        </p>
+      </div>
+
+      {/* Mode tabs */}
+      <div className="flex rounded-lg bg-muted p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => setMode('nostr')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            mode === 'nostr'
+              ? 'bg-background shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <User className="h-4 w-4" />
+          Nostr Account
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('guest')}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            mode === 'guest'
+              ? 'bg-background shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Globe className="h-4 w-4" />
+          Guest
+        </button>
+      </div>
+
+      {/* ── Nostr mode ──────────────────────────────────────────── */}
+      {mode === 'nostr' && (
+        <>
+          {!user ? (
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle>Log in to use Nostr mode</CardTitle>
+                <CardDescription>
+                  Nostr mode gives you auto payment detection and a full transaction ledger.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center gap-4">
+                <LoginArea className="w-full max-w-60" />
+                <p className="text-xs text-muted-foreground">
+                  Or switch to <button type="button" onClick={() => setMode('guest')} className="underline text-primary hover:text-primary/80">Guest mode</button> to generate invoices without an account.
+                </p>
+              </CardContent>
+            </Card>
+          ) : authorLoading ? (
+            <div className="space-y-6">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-72" />
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+          ) : !author?.metadata?.lud16 && !author?.metadata?.lud06 ? (
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle>Lightning Address Required</CardTitle>
+                <CardDescription>
+                  You need a Lightning address in your Nostr profile for Nostr mode.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Set up a free Lightning address with{' '}
+                  <a href="https://getalby.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">Alby</a>
+                  {' '}or{' '}
+                  <a href="https://lnbits.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">LNbits</a>
+                  , then update your Nostr profile. Or switch to Guest mode.
+                </p>
+                <Button variant="outline" onClick={() => setMode('guest')} className="gap-2">
+                  <Globe className="h-4 w-4" />
+                  Switch to Guest Mode
+                </Button>
+              </CardContent>
+            </Card>
+          ) : invoice ? (
+            <InvoiceDisplay
+              invoice={invoice}
+              amount={amount}
+              comment={comment}
+              qrCodeUrl={qrCodeUrl}
+              settlementStatus={settlementStatus}
+              settlementError={settlementError}
+              receipt={receipt}
+              onReset={handleReset}
+              onCheckNow={checkNow}
+              isGuest={false}
+              onGuestConfirm={() => {}}
+              guestConfirmed={false}
+            />
+          ) : (
+            <ZapForm
+              amount={amount}
+              setAmount={setAmount}
+              comment={comment}
+              setComment={setComment}
+              isLoading={isZapping}
+              onGenerate={handleNostrGenerate}
+              footer={
+                <p className="text-xs text-center text-muted-foreground">
+                  Your Lightning address:{' '}
+                  <code className="font-mono text-primary">
+                    {author?.metadata?.lud16 || author?.metadata?.lud06}
+                  </code>
+                </p>
+              }
+            />
+          )}
+        </>
+      )}
+
+      {/* ── Guest mode ──────────────────────────────────────────── */}
+      {mode === 'guest' && (
+        <>
+          {invoice ? (
+            <InvoiceDisplay
+              invoice={invoice}
+              amount={amount}
+              comment={comment}
+              qrCodeUrl={qrCodeUrl}
+              settlementStatus={settlementStatus}
+              settlementError={settlementError}
+              receipt={null}
+              onReset={handleReset}
+              onCheckNow={() => {}}
+              isGuest
+              onGuestConfirm={guestConfirm}
+              guestConfirmed={guestConfirmed}
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Guest Mode</CardTitle>
+                <CardDescription>
+                  No account needed. Just paste your Lightning address to generate a payment QR.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {/* Lightning address input */}
+                <div className="space-y-2">
+                  <label htmlFor="guest-lud16" className="text-sm font-medium">
+                    Your Lightning Address
+                  </label>
+                  <Input
+                    id="guest-lud16"
+                    type="text"
+                    placeholder="you@getalby.com"
+                    value={guestLud16}
+                    onChange={(e) => setGuestLud16(e.target.value)}
+                    className="w-full font-mono"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Get a free Lightning address from{' '}
+                    <a href="https://getalby.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">Alby</a>
+                    {' '}or{' '}
+                    <a href="https://lnbits.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">LNbits</a>.
+                  </p>
+                </div>
+
+                <Separator />
+
+                {/* Amount + Comment */}
+                <ToggleGroup
+                  type="single"
+                  value={String(amount)}
+                  onValueChange={(v) => v && setAmount(parseInt(v, 10))}
+                  className="grid grid-cols-5 gap-1"
                 >
-                  <Icon className="h-4 w-4 mb-1" />
-                  <span>{label}</span>
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+                  {presetAmounts.map(({ amount: p, icon: Icon, label }) => (
+                    <ToggleGroupItem
+                      key={p}
+                      value={String(p)}
+                      className="flex flex-col h-auto min-w-0 text-xs px-1 py-2"
+                      aria-label={`${label} satoshis`}
+                    >
+                      <Icon className="h-4 w-4 mb-1" />
+                      <span>{label}</span>
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
 
-            <div className="flex items-center gap-2">
-              <div className="h-px flex-1 bg-muted" />
-              <span className="text-xs text-muted-foreground">OR</span>
-              <div className="h-px flex-1 bg-muted" />
-            </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-muted" />
+                  <span className="text-xs text-muted-foreground">OR</span>
+                  <div className="h-px flex-1 bg-muted" />
+                </div>
 
-            {/* Custom Amount */}
-            <div className="space-y-2">
-              <Input
-                id="custom-amount"
-                type="number"
-                placeholder="Custom amount (sats)"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min={1}
-                className="w-full"
-              />
-            </div>
+                <Input
+                  type="number"
+                  placeholder="Custom amount (sats)"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  min={1}
+                  className="w-full"
+                />
 
-            {/* Comment */}
-            <div className="space-y-2">
-              <Textarea
-                id="comment"
-                placeholder="Add a message (optional)"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="w-full resize-none"
-                rows={2}
-              />
-            </div>
+                <Textarea
+                  placeholder="Add a message (optional)"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full resize-none"
+                  rows={2}
+                />
 
-            {/* Generate Button */}
-            <Button
-              onClick={handleGenerate}
-              disabled={isZapping}
-              className="w-full"
-              size="lg"
-            >
-              {isZapping ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Creating Invoice...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Generate QR Code
-                </>
-              )}
-            </Button>
+                <Button onClick={handleGuestGenerate} disabled={guestLoading} className="w-full" size="lg">
+                  {guestLoading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Creating Invoice...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4 mr-2" />
+                      Generate QR Code
+                    </>
+                  )}
+                </Button>
 
-            <p className="text-xs text-center text-muted-foreground">
-              Your Lightning address:{' '}
-              <code className="font-mono text-primary">
-                {author?.metadata?.lud16 || author?.metadata?.lud06}
-              </code>
-            </p>
-          </CardContent>
-        </Card>
+                <p className="text-xs text-center text-muted-foreground">
+                  Guest invoices use direct LNURL-pay (no Nostr zap protocol).
+                  Payment must be manually confirmed.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
