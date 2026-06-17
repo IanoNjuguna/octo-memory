@@ -17,6 +17,13 @@ ZapQR offers two ways to generate invoices. Pick the one that fits your needs.
 | **Social proof** | Yes — zaps are visible to followers | No |
 | **Browser storage** | NWC connections, profile cache | Nothing persisted |
 
+**The fundamental difference:** Nostr mode links every payment to an identity
+and keeps a permanent record. Guest mode treats each invoice as a standalone
+event — no history, no identity, no connection between payments. Guest mode
+is **not** limited to a single payment (you can generate as many invoices as
+you want in a session), but each invoice exists in isolation. Close the tab,
+and everything disappears.
+
 ## When to Use Nostr Mode
 
 - You want **automatic payment confirmation** without checking your wallet
@@ -193,8 +200,16 @@ Not sure which mode to use? Answer these questions:
 **Are you accepting tips or donations publicly?**
 → Use **Nostr mode**. The social proof of zaps is the entire point.
 
-**Is this a one-off payment from someone you trust?**
-→ **Guest mode** is fine. A friend buying you coffee doesn't need a receipt.
+**Is this a one-off payment from someone you trust, where you don't need a record?**
+→ **Guest mode** is fine. A friend buying you coffee, a flea market sale, a
+quick invoice for someone in the room. But remember: you're trusting the payer
+and your own eyes (checking your wallet). There's no safety net.
+
+**Are you generating multiple invoices in a session and want to track them?**
+→ **Guest mode** lets you do this — but each invoice is independent. There's
+no running total, no way to tell which ones got paid without manually checking
+your wallet each time. If you need any tracking at all, Nostr mode is the
+right call.
 
 **Do you lack a Nostr account and need something now?**
 → **Guest mode**. But create a Nostr account later if you plan to receive regularly.
@@ -214,7 +229,8 @@ Convenience:        ★★☆☆☆                   ★★★★★
 Features:           ★★☆☆☆                   ★★★★★
 Payer info:         Anonymous               Nostr identity
 Fraud resistance:   None                    Cryptographic proof
-Best for:           One-off trusted payments Regular / business use
+Best for:           Disconnected / trust-based    Regular / business use
+Session persistence: None — tab close = gone       Full — ledger survives reloads
 ```
 
 ---
