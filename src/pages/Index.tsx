@@ -49,10 +49,10 @@ const Index = () => {
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="gap-2">
-                  <Link to="/docs">
+                  <a href="/docs/">
                     <BookOpen className="h-5 w-5" />
                     Docs
-                  </Link>
+                  </a>
                 </Button>
               </>
             ) : (
@@ -169,10 +169,10 @@ const Index = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="gap-2">
-              <Link to="/docs">
+              <a href="/docs/">
                 <BookOpen className="h-5 w-5" />
                 Read the Docs
-              </Link>
+              </a>
             </Button>
           </div>
         ) : (

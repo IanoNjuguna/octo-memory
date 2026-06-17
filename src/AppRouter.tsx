@@ -5,7 +5,6 @@ import Index from "./pages/Index";
 import { NIP19Page } from "./pages/NIP19Page";
 import ReceiveZapPage from "./pages/ReceiveZapPage";
 import LedgerPage from "./pages/LedgerPage";
-import DocsPage from "./pages/DocsPage";
 import NotFound from "./pages/NotFound";
 
 export function AppRouter() {
@@ -17,7 +16,6 @@ export function AppRouter() {
         {/* ZapQR routes */}
         <Route path="/receive" element={<ReceiveZapPage />} />
         <Route path="/ledger" element={<LedgerPage />} />
-        <Route path="/docs" element={<DocsPage />} />
         {/* NIP-19 route for npub1, note1, naddr1, nevent1, nprofile1 */}
         <Route path="/:nip19" element={<NIP19Page />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

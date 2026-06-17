@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ZapQR — Documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="description" content="Learn how to use ZapQR to receive Bitcoin Lightning payments via QR codes.">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/themes/vue.css">
+  <style>
+    :root {
+      --theme-color: #f59e0b;
+      --theme-color-light: #fef3c7;
+    }
+    .app-nav a.active { border-bottom-color: var(--theme-color); }
+    .sidebar-nav li>a[href] { font-size: 14px; }
+    .markdown-section h1 { font-size: 2rem; }
+    .markdown-section h2 { font-size: 1.5rem; margin-top: 2.5rem; }
+    .markdown-section h3 { font-size: 1.15rem; }
+    .markdown-section code {
+      color: #e11d48;
+      background: #f1f5f9;
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    .markdown-section pre code { color: inherit; background: inherit; }
+  </style>
+</head>
+<body>
+  <div id="app">Loading documentation…</div>
+  <script>
+    window.$docsify = {
+      name: 'ZapQR',
+      repo: 'https://github.com/IanoNjuguna/octo-memory',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      auto2top: true,
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: 'Search docs…',
+        noData: 'No results.',
+        depth: 4,
+      },
+    };
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+</body>
+</html>
