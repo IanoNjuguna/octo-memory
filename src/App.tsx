@@ -12,6 +12,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { NostrLoginProvider } from '@nostrify/react/login';
 import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
+import { NWCProvider } from '@/contexts/NWCContext';
 import { APP_RELAYS } from '@/lib/appRelays';
 import AppRouter from './AppRouter';
 
@@ -51,14 +52,16 @@ export function App() {
       <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig}>
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
-            <NostrProvider>
+             <NostrProvider>
               <NostrSync />
+              <NWCProvider>
               <TooltipProvider>
                 <Toaster />
                 <Suspense>
                   <AppRouter />
                 </Suspense>
-              </TooltipProvider>
+                </TooltipProvider>
+              </NWCProvider>
             </NostrProvider>
           </NostrLoginProvider>
         </QueryClientProvider>
