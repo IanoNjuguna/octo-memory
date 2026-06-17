@@ -30,8 +30,9 @@ as a fallback.
 
 ## Can I embed the QR code on my website?
 
-Future versions will support an embeddable QR widget. For now, you can
-screenshot the QR or share the invoice string.
+Yes! Generate a QR code, click **"Embed this QR"**, and copy the iframe snippet.
+Paste it into your website, blog, or Notion page. The QR auto-generates on each
+page load and works with any Lightning address. See the [Embedding Guide](qr-codes.md#embedding-the-qr-code) for details.
 
 ## What happens if I close the browser?
 

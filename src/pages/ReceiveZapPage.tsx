@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, RefreshCw, User, Globe } from 'lucide-react';
+import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, RefreshCw, User, Globe, Code } from 'lucide-react';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -60,9 +60,12 @@ function InvoiceDisplay({
   isGuest: boolean;
   onGuestConfirm: () => void;
   guestConfirmed: boolean;
+  embedLud16: string;
 }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [showEmbed, setShowEmbed] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(invoice);
@@ -128,6 +131,9 @@ function InvoiceDisplay({
           <p className="text-xs text-center text-muted-foreground">
             Scan the QR code or copy the invoice to pay with any Lightning wallet.
           </p>
+
+          {/* Embed */}
+          <EmbedSection lud16={embedLud16} amount={displayAmount} />
         </div>
 
         {/* Guest: manual confirmation */}
@@ -192,6 +198,64 @@ function InvoiceDisplay({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// ─── Embed code section ─────────────────────────────────────────────
+
+function EmbedSection({ lud16, amount }: { lud16: string; amount: number }) {
+  const { toast } = useToast();
+  const [showEmbed, setShowEmbed] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const embedUrl = `${baseUrl}/embed?lud16=${encodeURIComponent(lud16)}&amount=${amount}`;
+  const iframeSnippet = `<iframe src="${embedUrl}" width="320" height="380" frameborder="0" style="border-radius:12px"></iframe>`;
+
+  const handleCopyEmbed = async () => {
+    await navigator.clipboard.writeText(iframeSnippet);
+    setEmbedCopied(true);
+    toast({ title: 'Embed code copied', description: 'Paste it into your website or blog.' });
+    setTimeout(() => setEmbedCopied(false), 2000);
+  };
+
+  if (!lud16) return null;
+
+  return (
+    <div className="space-y-2">
+      {!showEmbed ? (
+        <Button variant="ghost" size="sm" onClick={() => setShowEmbed(true)} className="w-full gap-2 text-xs">
+          <Code className="h-3.5 w-3.5" />
+          Embed this QR
+        </Button>
+      ) : (
+        <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium">Embed Code</span>
+            <Button variant="ghost" size="sm" onClick={() => setShowEmbed(false)} className="h-6 text-xs">
+              Hide
+            </Button>
+          </div>
+          <div className="relative">
+            <pre className="text-xs font-mono bg-background rounded-md p-2 overflow-x-auto whitespace-pre-wrap break-all border">
+              {iframeSnippet}
+            </pre>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyEmbed}
+              className="absolute top-1.5 right-1.5 h-7 gap-1 text-xs"
+            >
+              {embedCopied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+              {embedCopied ? 'Copied' : 'Copy'}
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Paste this iframe into your website, blog, or Notion page. The QR auto-generates and stays in sync with your Lightning address.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -533,6 +597,7 @@ export default function ReceiveZapPage() {
               isGuest={false}
               onGuestConfirm={() => {}}
               guestConfirmed={false}
+              embedLud16={author?.metadata?.lud16 || author?.metadata?.lud06 || ''}
             />
           ) : (
             <ZapForm
@@ -572,6 +637,7 @@ export default function ReceiveZapPage() {
               isGuest
               onGuestConfirm={guestConfirm}
               guestConfirmed={guestConfirmed}
+              embedLud16={guestLud16}
             />
           ) : (
             <Card>

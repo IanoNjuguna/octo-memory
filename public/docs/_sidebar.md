@@ -5,7 +5,7 @@
 
 - Receiving Zaps
   - [Creating an Invoice](creating-invoices.md)
-  - [QR Codes](qr-codes.md)
+  - [QR Codes & Embedding](qr-codes.md)
   - [Payment Status](payment-status.md)
 
 - Wallet Setup
