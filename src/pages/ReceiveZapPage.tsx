@@ -728,6 +728,11 @@ export default function ReceiveZapPage() {
                   )}
                 </Button>
 
+                {guestError && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50 p-3">
+                    <p className="text-sm text-red-700 dark:text-red-300">{guestError}</p>
+                  </div>
+                )}
                 <p className="text-xs text-center text-muted-foreground">
                   Guest invoices use direct LNURL-pay (no Nostr zap protocol).
                   Payment must be manually confirmed.

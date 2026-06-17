@@ -56,25 +56,19 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
       // Step 2: resolve LNURL-pay endpoint
       const lnurlpUrl = `https://${parsed.domain}/.well-known/lnurlp/${parsed.name}`;
       let metadata: LNURLPayMetadata;
-      try {
-        const res = await proxiedFetch(lnurlpUrl);
-        if (!res.ok) {
-          const hint = res.status === 404
-            ? `"${parsed.name}@${parsed.domain}" could not be found. Make sure this is your real Lightning address (e.g., from Alby or LNbits), not the placeholder.`
-            : `Check that your address is correct (HTTP ${res.status}).`;
-          throw new Error(hint);
-        }
-        const data = await res.json();
-        if (data.status === 'ERROR') {
-          throw new Error(data.reason || 'Lightning service returned an error.');
-        }
-        metadata = data;
-      } catch (err) {
-        if (err instanceof Error && err.message.startsWith('Lightning')) throw err;
-        throw new Error(
-          'Could not resolve Lightning address. Make sure the domain supports LNURL-pay.',
-        );
+
+      const res = await proxiedFetch(lnurlpUrl);
+      if (!res.ok) {
+        const hint = res.status === 404
+          ? `"${parsed.name}@${parsed.domain}" could not be found. Make sure this is your real Lightning address (e.g., from Alby or LNbits), not the placeholder.`
+          : `Check that your address is correct (HTTP ${res.status}).`;
+        throw new Error(hint);
       }
+      const data = await res.json();
+      if (data.status === 'ERROR') {
+        throw new Error(data.reason || 'Lightning service returned an error.');
+      }
+      metadata = data;
 
       // Step 3: validate amount against limits
       const amountMillisats = amountSats * 1000;
@@ -108,11 +102,13 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
         error: null,
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      console.error('Guest invoice generation failed:', err);
       setState({
         invoice: null,
         paymentHash: null,
         isLoading: false,
-        error: err instanceof Error ? err.message : 'An unexpected error occurred.',
+        error: message,
       });
     }
   }, []);
