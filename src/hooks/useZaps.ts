@@ -11,6 +11,7 @@ import type { WebLNProvider } from '@webbtc/webln-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
+import { proxiedFetch } from '@/lib/utils';
 
 export function useZaps(
   target: Event | Event[],
@@ -192,18 +193,14 @@ export function useZaps(
         return;
       }
 
-      // Create zap request - use appropriate event format based on kind
-      // For addressable events (30000-39999), pass the object to get 'a' tag
-      // For all other events, pass the ID string to get 'e' tag
-      const event = (actualTarget.kind >= 30000 && actualTarget.kind < 40000)
-        ? actualTarget
-        : actualTarget.id;
-
+      // Create zap request — always pass the full event object.
+      // nostr-tools makeZapRequest accesses .id, .kind, and optionally
+      // d-tag from the event, so the object must have those fields.
       const zapAmount = amount * 1000; // convert to millisats
 
       const zapRequest = nip57.makeZapRequest({
         profile: actualTarget.pubkey,
-        event: event,
+        event: actualTarget,
         amount: zapAmount,
         relays: config.relayMetadata.relays.map(r => r.url),
         comment
@@ -216,7 +213,7 @@ export function useZaps(
       const signedZapRequest = await user.signer.signEvent(zapRequest);
 
       try {
-        const res = await fetch(`${zapEndpoint}?amount=${zapAmount}&nostr=${encodeURI(JSON.stringify(signedZapRequest))}`);
+        const res = await proxiedFetch(`${zapEndpoint}?amount=${zapAmount}&nostr=${encodeURI(JSON.stringify(signedZapRequest))}`);
             const responseData = await res.json();
 
             if (!res.ok) {
