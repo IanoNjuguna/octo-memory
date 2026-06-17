@@ -599,7 +599,7 @@ export default function ReceiveZapPage() {
               embedLud16={author?.metadata?.lud16 || author?.metadata?.lud06 || ''}
             />
           ) : (
-            <ZapIconForm
+            <ZapForm
               amount={amount}
               setAmount={setAmount}
               comment={comment}
