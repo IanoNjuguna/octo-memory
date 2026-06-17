@@ -1,6 +1,6 @@
 # Nostr Mode vs Guest Mode — Tradeoffs
 
-ZapQR offers two ways to generate invoices. Pick the one that fits your needs.
+ZapQR offers two ways to generate invoices. But the full power of the app unlocks when **both sender and receiver** are on Nostr — see [how that works](nip57.md#full-nostr-to-nostr-flow-both-parties-on-nostr).
 
 ## Comparison
 
@@ -23,6 +23,23 @@ event — no history, no identity, no connection between payments. Guest mode
 is **not** limited to a single payment (you can generate as many invoices as
 you want in a session), but each invoice exists in isolation. Close the tab,
 and everything disappears.
+
+### The Best Case: Both Parties on Nostr
+
+When both sender and receiver use Nostr, you get the full NIP-57 zap protocol:
+
+| Feature | Guest Mode | Nostr Mode (QR pay) | Nostr Mode (Both on Nostr) |
+|---|---|---|---|
+| **Payer** | Lightning wallet (scan) | Lightning wallet (scan) | Nostr client (NWC/WebLN) |
+| **Payer identity** | Anonymous | Anonymous | Nostr pubkey + profile |
+| **Receipt** | None | Kind 9735 on relays | Kind 9735 on relays |
+| **Payer gets a record?** | No | No | Yes — outgoing zap in their client |
+| **Dispute resolution** | None | Preimage on relays | Preimage + both pubkeys |
+| **Receiver sees** | Manual confirm | Auto-detect, no payer name | Auto-detect, payer's name + avatar |
+
+> 💡 The ideal flow: receiver generates a zap QR → payer scans it with a Nostr
+> client that supports NIP-57 (like ZapQR's ZapButton, Damus, Primal, Snort)
+> → payer's identity is recorded → both sides get a verifiable receipt.
 
 ## When to Use Nostr Mode
 
