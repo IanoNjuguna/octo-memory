@@ -11,18 +11,24 @@ const CORS_PROXY = 'https://proxy.shakespeare.diy/?url=';
 /**
  * Fetch, trying direct first (most LNURL services support CORS),
  * falling back to the CORS proxy if the direct request is blocked.
+ * Defaults to a 15-second timeout to prevent hanging loading states.
  */
 export async function proxiedFetch(url: string, init?: RequestInit): Promise<Response> {
+  const signal = init?.signal ?? AbortSignal.timeout(15000);
+  const opts = { ...init, signal };
+
   // Try direct first — Alby, LNbits, and most LNURL services have CORS headers
   try {
-    const direct = await fetch(url, init);
+    const direct = await fetch(url, opts);
     if (direct.ok || direct.status >= 400) return direct;
-  } catch {
+  } catch (err) {
+    // If already aborted (timeout), rethrow
+    if (signal.aborted) throw err;
     // Direct fetch blocked (likely CORS) — fall through to proxy
   }
 
   // Fall back to CORS proxy
-  return fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, init);
+  return fetch(`${CORS_PROXY}${encodeURIComponent(url)}`, opts);
 }
 
 /**
