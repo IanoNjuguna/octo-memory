@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, Plus, Trash2, Zap, Globe, WalletMinimal, CheckCircle, X } from 'lucide-react';
+import { Wallet01Icon, Add01Icon, Delete01Icon, ZapIcon, GlobeIcon, CheckmarkCircle01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -97,14 +97,14 @@ const WalletContent = ({
         {/* WebLN */}
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="flex items-center gap-3">
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <GlobeIcon className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">WebLN</p>
               <p className="text-xs text-muted-foreground">Browser extension</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {webln && <CheckCircle className="h-4 w-4 text-green-600" />}
+            {webln && <CheckmarkCircle01Icon className="h-4 w-4 text-green-600" />}
             <Badge variant={webln ? "default" : "secondary"} className="text-xs">
               {webln ? "Ready" : "Not Found"}
             </Badge>
@@ -113,7 +113,7 @@ const WalletContent = ({
         {/* NWC */}
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="flex items-center gap-3">
-            <WalletMinimal className="h-4 w-4 text-muted-foreground" />
+            <Wallet01IconMinimal className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">Nostr Wallet Connect</p>
               <p className="text-xs text-muted-foreground">
@@ -125,7 +125,7 @@ const WalletContent = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {hasNWC && <CheckCircle className="h-4 w-4 text-green-600" />}
+            {hasNWC && <CheckmarkCircle01Icon className="h-4 w-4 text-green-600" />}
             <Badge variant={hasNWC ? "default" : "secondary"} className="text-xs">
               {hasNWC ? "Ready" : "None"}
             </Badge>
@@ -139,7 +139,7 @@ const WalletContent = ({
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Nostr Wallet Connect</h3>
         <Button size="sm" variant="outline" onClick={() => setAddDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
+          <Add01Icon className="h-4 w-4 mr-1" />
           Add
         </Button>
       </div>
@@ -156,7 +156,7 @@ const WalletContent = ({
             return (
               <div key={connection.connectionString} className={`flex items-center justify-between p-3 border rounded-lg ${isActive ? 'ring-2 ring-primary' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <WalletMinimal className="h-4 w-4 text-muted-foreground" />
+                  <Wallet01IconMinimal className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">
                       {connection.alias || info?.alias || 'Lightning Wallet'}
@@ -167,14 +167,14 @@ const WalletContent = ({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {isActive && <CheckCircle className="h-4 w-4 text-green-600" />}
+                  {isActive && <CheckmarkCircle01Icon className="h-4 w-4 text-green-600" />}
                   {!isActive && (
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => handleSetActive(connection.connectionString)}
                     >
-                      <Zap className="h-3 w-3" />
+                      <ZapIcon className="h-3 w-3" />
                     </Button>
                   )}
                   <Button
@@ -182,7 +182,7 @@ const WalletContent = ({
                     variant="ghost"
                     onClick={() => handleRemoveConnection(connection.connectionString)}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Delete01Icon className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export function WalletModal({ children, className }: WalletModalProps) {
           <DrawerTrigger asChild>
             {children || (
               <Button variant="outline" size="sm" className={className}>
-                <Wallet className="h-4 w-4 mr-2" />
+                <Wallet01Icon className="h-4 w-4 mr-2" />
                 Wallet Settings
               </Button>
             )}
@@ -317,12 +317,12 @@ export function WalletModal({ children, className }: WalletModalProps) {
             <DrawerHeader className="text-center relative">
               <DrawerClose asChild>
                 <Button variant="ghost" size="sm" className="absolute right-4 top-4">
-                  <X className="h-4 w-4" />
+                  <Cancel01Icon className="h-4 w-4" />
                   <span className="sr-only">Close</span>
                 </Button>
               </DrawerClose>
               <DrawerTitle className="flex items-center justify-center gap-2 pt-2">
-                <Wallet className="h-5 w-5" />
+                <Wallet01Icon className="h-5 w-5" />
                 Lightning Wallet
               </DrawerTitle>
               <DrawerDescription>
@@ -330,7 +330,7 @@ export function WalletModal({ children, className }: WalletModalProps) {
               </DrawerDescription>
             </DrawerHeader>
             <div className="overflow-y-auto">
-              <WalletContent {...walletContentProps} />
+              <Wallet01IconContent {...walletContentProps} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -370,7 +370,7 @@ export function WalletModal({ children, className }: WalletModalProps) {
         <DialogTrigger asChild>
           {children || (
             <Button variant="outline" size="sm" className={className}>
-              <Wallet className="h-4 w-4 mr-2" />
+              <Wallet01Icon className="h-4 w-4 mr-2" />
               Wallet Settings
             </Button>
           )}
@@ -378,14 +378,14 @@ export function WalletModal({ children, className }: WalletModalProps) {
         <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5" />
+              <Wallet01Icon className="h-5 w-5" />
               Lightning Wallet
             </DialogTitle>
             <DialogDescription>
               Connect your lightning wallet to send zaps instantly.
             </DialogDescription>
           </DialogHeader>
-          <WalletContent {...walletContentProps} />
+          <Wallet01IconContent {...walletContentProps} />
         </DialogContent>
       </Dialog>
       {addWalletDialog}

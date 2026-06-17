@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, UserIcon, UserPlus } from 'lucide-react';
+import { ArrowDown01Icon, Logout01Icon, UserIcon, UserAdd01Icon } from '@hugeicons/core-free-icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +44,7 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
               )}
             </AvatarFallback>
           </Avatar>
-          <ChevronDown className='w-4 h-4 text-muted-foreground' />
+          <ArrowDown01Icon className='w-4 h-4 text-muted-foreground' />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className='w-56 p-2 animate-scale-in'>
@@ -86,14 +86,14 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           onClick={onAddAccountClick}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
         >
-          <UserPlus className='w-4 h-4' />
+          <UserAdd01Icon className='w-4 h-4' />
           <span>Add another account</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => removeLogin(currentUser.id)}
           className='flex items-center gap-2 cursor-pointer p-2 rounded-md text-red-500'
         >
-          <LogOut className='w-4 h-4' />
+          <Logout01Icon className='w-4 h-4' />
           <span>Log out</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  Download,
-  Upload,
-  Eye,
-  EyeOff,
-  Key,
-  ChevronDown,
-  ChevronUp,
-  Loader2,
-  ExternalLink,
-} from 'lucide-react';
+  Download01Icon,
+  Upload01Icon,
+  ViewIcon,
+  ViewOffIcon,
+  Key01Icon,
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Loading02Icon,
+  ExternalLinkIcon,
+} from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -493,11 +493,11 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
               <div className="relative w-20 h-20 mx-auto">
                 {isGenerating ? (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                    <Loading02Icon className="w-12 h-12 text-primary animate-spin" />
                   </div>
                 ) : (
                   <div className="absolute inset-0 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Key className="w-8 h-8 text-primary" />
+                    <Key01Icon className="w-8 h-8 text-primary" />
                   </div>
                 )}
               </div>
@@ -532,7 +532,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
           {step === 'secure' && (
             <div className="space-y-4">
               <div className="flex size-14 bg-primary/10 rounded-full items-center justify-center mx-auto">
-                <Key className="w-7 h-7 text-primary" />
+                <Key01Icon className="w-7 h-7 text-primary" />
               </div>
 
               <p className="text-sm text-muted-foreground text-center">
@@ -554,9 +554,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                   onClick={() => setShowKey(!showKey)}
                 >
                   {showKey ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <ViewOffIcon className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <ViewIcon className="h-4 w-4 text-muted-foreground" />
                   )}
                 </Button>
               </div>
@@ -568,7 +568,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
               </div>
 
               <Button onClick={downloadAndProceed} className="w-full h-12">
-                <Download className="w-4 h-4 mr-2" />
+                <Download01Icon className="w-4 h-4 mr-2" />
                 Download &amp; continue
               </Button>
             </div>
@@ -642,9 +642,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                       title="Upload avatar"
                     >
                       {isUploading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loading02Icon className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Upload className="w-4 h-4" />
+                        <Upload01Icon className="w-4 h-4" />
                       )}
                     </Button>
                   </div>
@@ -695,7 +695,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                   <Collapsible open={showMoreOptions} onOpenChange={setShowMoreOptions}>
                     <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground py-2">
                       <span>Use secret key</span>
-                      <ChevronDown
+                      <ArrowDown01Icon
                         className={`w-4 h-4 transition-transform ${
                           showMoreOptions ? 'rotate-180' : ''
                         }`}
@@ -763,7 +763,7 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                   // phase so a stuck signer is visibly stuck, not silently
                   // stuck.
                   <div className="flex flex-col items-center space-y-4 py-6 w-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <Loading02Icon className="w-8 h-8 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground text-center min-h-[1.25rem]">
                       {connectStatusLabel(connectStatus)}
                     </p>
@@ -785,14 +785,14 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
 
                     {isMobile && (
                       <Button onClick={handleOpenSignerApp} className="w-full h-12">
-                        <ExternalLink className="w-5 h-5 mr-2" />
+                        <ExternalLinkIcon className="w-5 h-5 mr-2" />
                         Open signer app
                       </Button>
                     )}
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-[100px]">
-                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    <Loading02Icon className="w-8 h-8 animate-spin text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -802,9 +802,9 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose }) => {
                 <CollapsibleTrigger className="w-full flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground py-2">
                   <span>Enter bunker URI manually</span>
                   {showBunkerInput ? (
-                    <ChevronUp className="w-4 h-4" />
+                    <ArrowUp01Icon className="w-4 h-4" />
                   ) : (
-                    <ChevronDown className="w-4 h-4" />
+                    <ArrowDown01Icon className="w-4 h-4" />
                   )}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-3 pt-2">
@@ -909,7 +909,7 @@ const NsecLoginForm: React.FC<NsecLoginFormProps> = ({
         size="icon"
         onClick={() => fileInputRef.current?.click()}
       >
-        <Upload className="w-4 h-4" />
+        <Upload01Icon className="w-4 h-4" />
       </Button>
     </div>
   </form>

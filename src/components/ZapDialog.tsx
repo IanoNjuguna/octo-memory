@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, X } from 'lucide-react';
+import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -131,9 +131,9 @@ const ZapContent = ({
                 className="shrink-0"
               >
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Tick01Icon className="h-4 w-4 text-green-600" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy01Icon className="h-4 w-4" />
                 )}
               </Button>
             </div>
@@ -151,7 +151,7 @@ const ZapContent = ({
                 className="w-full"
                 size="lg"
               >
-                <Zap className="h-4 w-4 mr-2" />
+                <ZapIcon className="h-4 w-4 mr-2" />
                 {isZapping ? "Processing..." : "Pay with WebLN"}
               </Button>
             )}
@@ -162,7 +162,7 @@ const ZapContent = ({
               className="w-full"
               size="lg"
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
+              <ExternalLinkIcon className="h-4 w-4 mr-2" />
               Open in Lightning Wallet
             </Button>
 
@@ -225,7 +225,7 @@ const ZapContent = ({
               'Creating invoice...'
             ) : (
               <>
-                <Zap className="h-4 w-4 mr-2" />
+                <ZapIcon className="h-4 w-4 mr-2" />
                 Zap {amount} sats
               </>
             )}
@@ -404,7 +404,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
                 }}
                 className="absolute left-4 top-4 flex items-center gap-2"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft01Icon className="h-4 w-4" />
               </Button>
             )}
 
@@ -415,7 +415,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
                 size="sm"
                 className="absolute right-4 top-4"
               >
-                <X className="h-4 w-4" />
+                <Cancel01Icon className="h-4 w-4" />
                 <span className="sr-only">Close</span>
               </Button>
             </DrawerClose>
@@ -432,7 +432,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto px-4 pb-4">
-            <ZapContent {...contentProps} />
+            <ZapIconContent {...contentProps} />
           </div>
         </DrawerContent>
       </Drawer>
@@ -462,7 +462,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
-          <ZapContent {...contentProps} />
+          <ZapIconContent {...contentProps} />
         </div>
       </DialogContent>
     </Dialog>

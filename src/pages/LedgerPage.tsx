@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ArrowUpRight, Clock } from 'lucide-react';
+import { ZapIcon, ArrowUpRight01Icon, Clock01Icon } from '@hugeicons/core-free-icons';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNostr } from '@nostrify/react';
@@ -174,7 +174,7 @@ export default function LedgerPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-              <Zap className="h-4 w-4" />
+              <ZapIcon className="h-4 w-4" />
               <span>Total Received</span>
             </div>
             {isLoading ? (
@@ -187,7 +187,7 @@ export default function LedgerPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRight01Icon className="h-4 w-4" />
               <span>Total Zaps</span>
             </div>
             {isLoading ? (
@@ -223,7 +223,7 @@ export default function LedgerPage() {
       ) : entries.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-12 text-center">
-            <Zap className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
+            <ZapIcon className="h-10 w-10 mx-auto text-muted-foreground/40 mb-3" />
             <p className="text-muted-foreground max-w-sm mx-auto">
               No zaps received yet. Share your QR code to start receiving Lightning payments.
             </p>
@@ -249,12 +249,12 @@ export default function LedgerPage() {
                         <PayerInfo pubkey={entry.payerPubkey} />
                       )}
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                        <Clock01Icon className="h-3 w-3" />
                         {new Date(entry.timestamp * 1000).toLocaleString()}
                       </span>
                     </div>
                   </div>
-                  <Zap className="h-5 w-5 text-amber-500 shrink-0 mt-1" />
+                  <ZapIcon className="h-5 w-5 text-amber-500 shrink-0 mt-1" />
                 </div>
               </CardContent>
             </Card>

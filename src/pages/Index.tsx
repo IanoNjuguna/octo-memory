@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
-import { Zap, Scan, ArrowRight, Wallet, QrCode, List, BookOpen } from 'lucide-react';
+import { ZapIcon, ScanIcon, ArrowRight01Icon, Wallet01Icon, QrCodeIcon, LeftToRightListBulletIcon, BookOpen01Icon } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -22,7 +22,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-yellow-950/20" />
         <div className="relative max-w-4xl mx-auto px-4 py-16 md:py-24 text-center space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 dark:bg-amber-900/50 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-200">
-            <Zap className="h-4 w-4" />
+            <ZapIcon className="h-4 w-4" />
             Bitcoin Lightning Micropayments
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance">
@@ -38,19 +38,19 @@ const Index = () => {
               <>
                 <Button asChild size="lg" className="gap-2">
                   <Link to="/receive">
-                    <QrCode className="h-5 w-5" />
+                    <QrCodeIcon className="h-5 w-5" />
                     Generate QR Code
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="gap-2">
                   <Link to="/ledger">
-                    <List className="h-5 w-5" />
+                    <LeftToRightListBulletIcon className="h-5 w-5" />
                     View Ledger
                   </Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="gap-2">
                   <a href="/docs/">
-                    <BookOpen className="h-5 w-5" />
+                    <BookOpen01Icon className="h-5 w-5" />
                     Docs
                   </a>
                 </Button>
@@ -77,7 +77,7 @@ const Index = () => {
           <Card className="text-center">
             <CardContent className="pt-8 space-y-3">
               <div className="mx-auto w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                <Zap className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                <ZapIcon className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 className="font-semibold text-lg">1. Enter Amount</h3>
               <p className="text-sm text-muted-foreground">
@@ -89,7 +89,7 @@ const Index = () => {
           <Card className="text-center">
             <CardContent className="pt-8 space-y-3">
               <div className="mx-auto w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                <QrCode className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                <QrCodeIcon className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 className="font-semibold text-lg">2. Share QR Code</h3>
               <p className="text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ const Index = () => {
           <Card className="text-center">
             <CardContent className="pt-8 space-y-3">
               <div className="mx-auto w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                <Scan className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                <ScanIcon className="h-6 w-6 text-amber-600 dark:text-amber-400" />
               </div>
               <h3 className="font-semibold text-lg">3. Get Paid Instantly</h3>
               <p className="text-sm text-muted-foreground">
@@ -131,7 +131,7 @@ const Index = () => {
               desc: 'Payers can use Wallet of Satoshi, Phoenix, Breez, Alby, or any BOLT11-compatible wallet.',
             },
             {
-              icon: QrCode,
+              icon: QrCodeIcon,
               title: 'No Payer Signup',
               desc: 'Payers just scan and pay — no account creation, no Nostr login required.',
             },
@@ -165,12 +165,12 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild size="lg" className="gap-2">
               <Link to="/receive">
-                Start Receiving <ArrowRight className="h-4 w-4" />
+                Start Receiving <ArrowRight01Icon className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="gap-2">
               <a href="/docs/">
-                <BookOpen className="h-5 w-5" />
+                <BookOpen01Icon className="h-5 w-5" />
                 Read the Docs
               </a>
             </Button>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { ZapIcon } from '@hugeicons/core-free-icons';
 import { useGuestInvoice } from '@/hooks/useGuestInvoice';
 import { Skeleton } from '@/components/ui/skeleton';
 import QRCode from 'qrcode';
@@ -125,7 +125,7 @@ export default function EmbedPage() {
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-xs text-zinc-400 hover:text-amber-500 transition-colors mt-2"
         >
-          <Zap className="h-3 w-3" />
+          <ZapIcon className="h-3 w-3" />
           ZapQR
         </a>
       </div>

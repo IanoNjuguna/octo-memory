@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Zap, Copy, Check, ExternalLink, Sparkle, Sparkles, Star, Rocket, ArrowLeft, RefreshCw, User, Globe, Code } from 'lucide-react';
+import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, RefreshIcon, UserIcon, GlobeIcon, CodeIcon } from '@hugeicons/core-free-icons';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -25,8 +25,8 @@ import QRCode from 'qrcode';
 type Mode = 'nostr' | 'guest';
 
 const presetAmounts = [
-  { amount: 1, icon: Sparkle, label: '1' },
-  { amount: 50, icon: Sparkles, label: '50' },
+  { amount: 1, icon: StarIcon, label: '1' },
+  { amount: 50, icon: StarIcon, label: '50' },
   { amount: 100, icon: Zap, label: '100' },
   { amount: 250, icon: Star, label: '250' },
   { amount: 1000, icon: Rocket, label: '1k' },
@@ -83,7 +83,7 @@ function InvoiceDisplay({
       <CardContent className="pt-6 space-y-6">
         <div className="flex items-center">
           <Button variant="ghost" size="sm" onClick={onReset}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft01Icon className="h-4 w-4 mr-2" />
             New Invoice
           </Button>
         </div>
@@ -121,11 +121,11 @@ function InvoiceDisplay({
               aria-label="Lightning invoice"
             />
             <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
-              {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              {copied ? <Tick01Icon className="h-4 w-4 text-green-600" /> : <Copy01Icon className="h-4 w-4" />}
             </Button>
           </div>
           <Button variant="outline" onClick={handleOpenWallet} className="w-full" size="lg">
-            <ExternalLink className="h-4 w-4 mr-2" />
+            <ExternalLinkIcon className="h-4 w-4 mr-2" />
             Open in Lightning Wallet
           </Button>
           <p className="text-xs text-center text-muted-foreground">
@@ -148,7 +148,7 @@ function InvoiceDisplay({
                 variant="default"
                 className="gap-2"
               >
-                <Check className="h-4 w-4" />
+                <Tick01Icon className="h-4 w-4" />
                 I Received the Payment
               </Button>
             </CardContent>
@@ -158,7 +158,7 @@ function InvoiceDisplay({
         {/* Guest: confirmed */}
         {isGuest && guestConfirmed && (
           <div className="rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50 p-4 text-center">
-            <Check className="h-8 w-8 mx-auto text-green-600 dark:text-green-400 mb-2" />
+            <Tick01Icon className="h-8 w-8 mx-auto text-green-600 dark:text-green-400 mb-2" />
             <p className="font-semibold text-green-900 dark:text-green-100">Payment Confirmed</p>
             <p className="text-sm text-green-700 dark:text-green-300 mt-1">{displayAmount} sats received</p>
             <button
@@ -225,7 +225,7 @@ function EmbedSection({ lud16, amount }: { lud16: string; amount: number }) {
     <div className="space-y-2">
       {!showEmbed ? (
         <Button variant="ghost" size="sm" onClick={() => setShowEmbed(true)} className="w-full gap-2 text-xs">
-          <Code className="h-3.5 w-3.5" />
+          <CodeIcon className="h-3.5 w-3.5" />
           Embed this QR
         </Button>
       ) : (
@@ -246,7 +246,7 @@ function EmbedSection({ lud16, amount }: { lud16: string; amount: number }) {
               onClick={handleCopyEmbed}
               className="absolute top-1.5 right-1.5 h-7 gap-1 text-xs"
             >
-              {embedCopied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+              {embedCopied ? <Tick01Icon className="h-3 w-3 text-green-600" /> : <Copy01Icon className="h-3 w-3" />}
               {embedCopied ? 'Copied' : 'Copy'}
             </Button>
           </div>
@@ -334,12 +334,12 @@ function ZapForm({
         <Button onClick={onGenerate} disabled={isLoading} className="w-full" size="lg">
           {isLoading ? (
             <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
               Creating Invoice...
             </>
           ) : (
             <>
-              <Zap className="h-4 w-4 mr-2" />
+              <ZapIcon className="h-4 w-4 mr-2" />
               Generate QR Code
             </>
           )}
@@ -520,7 +520,7 @@ export default function ReceiveZapPage() {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <User className="h-4 w-4" />
+          <UserIcon className="h-4 w-4" />
           Nostr Account
         </button>
         <button
@@ -532,7 +532,7 @@ export default function ReceiveZapPage() {
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Globe className="h-4 w-4" />
+          <GlobeIcon className="h-4 w-4" />
           Guest
         </button>
       </div>
@@ -578,7 +578,7 @@ export default function ReceiveZapPage() {
                   , then update your Nostr profile. Or switch to Guest mode.
                 </p>
                 <Button variant="outline" onClick={() => setMode('guest')} className="gap-2">
-                  <Globe className="h-4 w-4" />
+                  <GlobeIcon className="h-4 w-4" />
                   Switch to Guest Mode
                 </Button>
               </CardContent>
@@ -600,7 +600,7 @@ export default function ReceiveZapPage() {
               embedLud16={author?.metadata?.lud16 || author?.metadata?.lud06 || ''}
             />
           ) : (
-            <ZapForm
+            <ZapIconForm
               amount={amount}
               setAmount={setAmount}
               comment={comment}
@@ -717,12 +717,12 @@ export default function ReceiveZapPage() {
                 <Button onClick={handleGuestGenerate} disabled={guestLoading} className="w-full" size="lg">
                   {guestLoading ? (
                     <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      <RefreshIcon className="h-4 w-4 mr-2 animate-spin" />
                       Creating Invoice...
                     </>
                   ) : (
                     <>
-                      <Zap className="h-4 w-4 mr-2" />
+                      <ZapIcon className="h-4 w-4 mr-2" />
                       Generate QR Code
                     </>
                   )}

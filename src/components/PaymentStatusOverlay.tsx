@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { CheckCircle, Clock, AlertCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckmarkCircle01Icon, Clock01Icon, Alert01Icon, CancelCircleIcon, Loading02Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 import type { SettlementStatus } from '@/hooks/useZapSettlement';
 
@@ -38,7 +38,7 @@ export function PaymentStatusOverlay({
       {/* Awaiting Payment */}
       {status === 'awaiting' && (
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />
+          <Loading02Icon className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />
           <div>
             <p className="text-lg font-semibold text-blue-900 dark:text-blue-100">
               Awaiting Payment
@@ -48,7 +48,7 @@ export function PaymentStatusOverlay({
             </p>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            <Clock className="inline h-3 w-3 mr-1" />
+            <Clock01Icon className="inline h-3 w-3 mr-1" />
             Invoice expires in ~1 hour
           </p>
         </div>
@@ -57,7 +57,7 @@ export function PaymentStatusOverlay({
       {/* Payment Received */}
       {status === 'received' && (
         <div className="flex flex-col items-center gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95">
-          <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
+          <CheckmarkCircle01Icon className="h-12 w-12 text-green-600 dark:text-green-400" />
           <div>
             <p className="text-xl font-bold text-green-900 dark:text-green-100">
               Zap Received!
@@ -79,7 +79,7 @@ export function PaymentStatusOverlay({
       {/* Expired */}
       {status === 'expired' && (
         <div className="flex flex-col items-center gap-3">
-          <XCircle className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
+          <CancelCircleIcon className="h-10 w-10 text-yellow-600 dark:text-yellow-400" />
           <div>
             <p className="text-lg font-semibold text-yellow-900 dark:text-yellow-100">
               Invoice Expired
@@ -101,7 +101,7 @@ export function PaymentStatusOverlay({
       {/* Error */}
       {status === 'error' && (
         <div className="flex flex-col items-center gap-3">
-          <AlertCircle className="h-10 w-10 text-red-600 dark:text-red-400" />
+          <Alert01Icon className="h-10 w-10 text-red-600 dark:text-red-400" />
           <div>
             <p className="text-lg font-semibold text-red-900 dark:text-red-100">
               Something went wrong

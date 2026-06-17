@@ -3,7 +3,7 @@ import { useZaps } from '@/hooks/useZaps';
 import { useWallet } from '@/hooks/useWallet';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
-import { Zap } from 'lucide-react';
+import { ZapIcon } from '@hugeicons/core-free-icons';
 import type { Event } from 'nostr-tools';
 
 interface ZapButtonProps {
@@ -42,7 +42,7 @@ export function ZapButton({
   return (
     <ZapDialog target={target}>
       <div className={`flex items-center gap-1 ${className}`}>
-        <Zap className="h-4 w-4" />
+        <ZapIcon className="h-4 w-4" />
         <span className="text-xs">
           {showLoading ? (
             '...'
