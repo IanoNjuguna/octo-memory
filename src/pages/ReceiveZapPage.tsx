@@ -47,6 +47,7 @@ function InvoiceDisplay({
   isGuest,
   onGuestConfirm,
   guestConfirmed,
+  embedLud16,
 }: {
   invoice: string;
   amount: number | string;
@@ -64,8 +65,6 @@ function InvoiceDisplay({
 }) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [showEmbed, setShowEmbed] = useState(false);
-  const [embedCopied, setEmbedCopied] = useState(false);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(invoice);
