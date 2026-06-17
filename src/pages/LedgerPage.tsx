@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { useQuery } from '@tanstack/react-query';
-import { Zap, ArrowUpRight, Clock, User } from 'lucide-react';
+import { Zap, ArrowUpRight, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNostr } from '@nostrify/react';
@@ -10,6 +10,7 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { nip57 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { UserAvatar } from '@/components/UserAvatar';
 
 interface LedgerEntry {
   id: string;
@@ -72,15 +73,30 @@ function extractZapRequestId(event: NostrEvent): string {
   return eTag || '';
 }
 
-function PayerName({ pubkey }: { pubkey: string }) {
+function PayerInfo({ pubkey }: { pubkey: string }) {
   const { data: payer, isLoading } = useAuthor(pubkey);
 
-  if (isLoading) return <Skeleton className="h-3 w-16 inline-block" />;
-  if (!payer?.metadata) return <span className="font-mono text-xs text-muted-foreground">{pubkey.slice(0, 8)}…</span>;
+  if (isLoading) {
+    return (
+      <span className="flex items-center gap-2">
+        <Skeleton className="size-5 rounded-full shrink-0" />
+        <Skeleton className="h-3 w-16" />
+      </span>
+    );
+  }
 
-  const name = payer.metadata.name || payer.metadata.display_name;
-  if (name) return <span className="text-sm">{name}</span>;
-  return <span className="font-mono text-xs text-muted-foreground">{pubkey.slice(0, 8)}…</span>;
+  const name = payer?.metadata?.name || payer?.metadata?.display_name;
+
+  return (
+    <span className="flex items-center gap-1.5">
+      <UserAvatar pubkey={pubkey} size="sm" />
+      {name ? (
+        <span className="text-sm">{name}</span>
+      ) : (
+        <span className="font-mono text-xs text-muted-foreground">{pubkey.slice(0, 8)}…</span>
+      )}
+    </span>
+  );
 }
 
 export default function LedgerPage() {
@@ -230,10 +246,7 @@ export default function LedgerPage() {
                     )}
                     <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
                       {entry.payerPubkey && (
-                        <span className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <PayerName pubkey={entry.payerPubkey} />
-                        </span>
+                        <PayerInfo pubkey={entry.payerPubkey} />
                       )}
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />

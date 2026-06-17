@@ -36,6 +36,7 @@ When both sender and receiver use Nostr, you get the full NIP-57 zap protocol:
 | **Payer gets a record?** | No | No | Yes — outgoing zap in their client |
 | **Dispute resolution** | None | Preimage on relays | Preimage + both pubkeys |
 | **Receiver sees** | Manual confirm | Auto-detect, no payer name | Auto-detect, payer's name + avatar |
+| **Payer avatar** | None | None | Gravatar identicon or profile picture |
 
 > 💡 The ideal flow: receiver generates a zap QR → payer scans it with a Nostr
 > client that supports NIP-57 (like ZapQR's ZapButton, Damus, Primal, Snort)

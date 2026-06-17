@@ -8,6 +8,7 @@ you are the recipient.
 
 | Column | Description |
 |---|---|
+| **Avatar** | Payer's profile picture, or a Gravatar identicon generated from their pubkey |
 | **Amount** | How many satoshis you received |
 | **Payer** | The Nostr identity of the person who zapped you (when available) |
 | **Comment** | The message attached to the zap |
