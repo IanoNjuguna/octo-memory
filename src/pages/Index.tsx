@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
-import { Zap, Scan, ArrowRight, Wallet, QrCode, List } from 'lucide-react';
+import { Zap, Scan, ArrowRight, Wallet, QrCode, List, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -46,6 +46,12 @@ const Index = () => {
                   <Link to="/ledger">
                     <List className="h-5 w-5" />
                     View Ledger
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="gap-2">
+                  <Link to="/docs">
+                    <BookOpen className="h-5 w-5" />
+                    Docs
                   </Link>
                 </Button>
               </>
@@ -156,11 +162,19 @@ const Index = () => {
           Log in with your Nostr account that has a Lightning address configured.
         </p>
         {user ? (
-          <Button asChild size="lg" className="gap-2">
-            <Link to="/receive">
-              Start Receiving <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button asChild size="lg" className="gap-2">
+              <Link to="/receive">
+                Start Receiving <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg" className="gap-2">
+              <Link to="/docs">
+                <BookOpen className="h-5 w-5" />
+                Read the Docs
+              </Link>
+            </Button>
+          </div>
         ) : (
           <LoginArea className="max-w-60" />
         )}
