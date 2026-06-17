@@ -44,5 +44,6 @@ Use the sidebar to browse the documentation:
 - **[QR Codes](qr-codes.md)** — QR formats, deep links, and copy fallback
 - **[Payment Status](payment-status.md)** — Awaiting, received, and expired states
 - **[Lightning Address](lightning-address.md)** — Set up Alby or LNbits
+- **[Nostr vs Guest](tradeoffs.md)** — Full comparison and tradeoffs
 - **[NIP-57 Zaps](nip57.md)** — Protocol details
 - **[FAQ](faq.md)** — Common questions
