@@ -195,4 +195,9 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
+
+  /* Ensure Hugeicons (and all SVG icons) inherit text color */
+  svg[data-slot="icon"], svg[class*="lucide"], svg:where(:not([fill])) {
+    color: inherit;
+  }
 }
