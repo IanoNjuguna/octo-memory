@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import { Cancel01Icon } from "@hugeicons/core-free-icons"
 
 import { cn } from "@/lib/utils"
 import { toastVariants } from "./toast-variants"
@@ -69,7 +69,7 @@ function ToastClose({
       toast-close=""
       {...props}
     >
-      <X className="h-4 w-4" />
+      <Cancel01Icon className="h-4 w-4" />
     </ToastPrimitives.Close>
   )
 }
