@@ -5,7 +5,7 @@ import {
   ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
-} from "@hugeicons/core-free-icons"
+} from "@/components/icons"
 import {
   DayPicker,
   getDefaultClassNames,

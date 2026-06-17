@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useSeoMeta } from '@unhead/react';
 import { useQuery } from '@tanstack/react-query';
-import { ZapIcon, ArrowUpRight01Icon, Clock01Icon } from '@hugeicons/core-free-icons';
+import { ZapIcon, ArrowUpRight01Icon, Clock01Icon } from '@/components/icons';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNostr } from '@nostrify/react';

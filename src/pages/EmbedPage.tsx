@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ZapIcon } from '@hugeicons/core-free-icons';
+import { ZapIcon } from '@/components/icons';
 import { useGuestInvoice } from '@/hooks/useGuestInvoice';
 import { Skeleton } from '@/components/ui/skeleton';
 import QRCode from 'qrcode';

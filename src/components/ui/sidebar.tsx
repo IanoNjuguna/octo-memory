@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { type VariantProps } from "class-variance-authority"
-import { Menu01Icon } from "@hugeicons/core-free-icons"
+import { Menu01Icon } from "@/components/icons"
 import { Slot } from "radix-ui"
 
 import { useIsMobile } from "@/hooks/useIsMobile"

@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { type VariantProps } from "class-variance-authority"
-import { Cancel01Icon } from "@hugeicons/core-free-icons"
+import { Cancel01Icon } from "@/components/icons"
 
 import { cn } from "@/lib/utils"
 import { toastVariants } from "./toast-variants"

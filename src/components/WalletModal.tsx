@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet01Icon, Add01Icon, Delete01Icon, ZapIcon, GlobeIcon, CheckmarkCircle01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
+import { Wallet01Icon, Add01Icon, Delete01Icon, ZapIcon, GlobeIcon, CheckmarkCircle01Icon, Cancel01Icon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, RefreshIcon, UserIcon, GlobeIcon, CodeIcon } from '@hugeicons/core-free-icons';
+import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, RefreshIcon, UserIcon, GlobeIcon, CodeIcon } from '@/components/icons';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';

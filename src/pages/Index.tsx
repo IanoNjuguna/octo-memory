@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
-import { ZapIcon, ScanIcon, ArrowRight01Icon, Wallet01Icon, QrCodeIcon, LeftToRightListBulletIcon, BookOpen01Icon } from '@hugeicons/core-free-icons';
+import { ZapIcon, ScanIcon, ArrowRight01Icon, Wallet01Icon, QrCodeIcon, LeftToRightListBulletIcon, BookOpen01Icon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser } from '@/hooks/useCurrentUser';

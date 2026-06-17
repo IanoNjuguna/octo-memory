@@ -3,7 +3,7 @@ import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
   MoreHorizontalIcon,
-} from "@hugeicons/core-free-icons"
+} from "@/components/icons"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button-variants"

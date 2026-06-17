@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArrowRight01Icon, MoreHorizontalIcon } from "@hugeicons/core-free-icons"
+import { ArrowRight01Icon, MoreHorizontalIcon } from "@/components/icons"
 import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"

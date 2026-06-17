@@ -9,7 +9,7 @@ import {
   ArrowUp01Icon,
   Loading02Icon,
   ExternalLinkIcon,
-} from '@hugeicons/core-free-icons';
+} from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

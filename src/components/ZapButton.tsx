@@ -3,7 +3,7 @@ import { useZaps } from '@/hooks/useZaps';
 import { useWallet } from '@/hooks/useWallet';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
-import { ZapIcon } from '@hugeicons/core-free-icons';
+import { ZapIcon } from '@/components/icons';
 import type { Event } from 'nostr-tools';
 
 interface ZapButtonProps {

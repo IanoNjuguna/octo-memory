@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Cancel01Icon } from "@hugeicons/core-free-icons"
+import { Cancel01Icon } from "@/components/icons"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"

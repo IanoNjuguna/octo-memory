@@ -1,4 +1,4 @@
-import { ArrowDown01Icon, Logout01Icon, UserIcon, UserAdd01Icon } from '@hugeicons/core-free-icons';
+import { ArrowDown01Icon, Logout01Icon, UserIcon, UserAdd01Icon } from '@/components/icons';
 import {
   DropdownMenu,
   DropdownMenuContent,

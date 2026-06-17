@@ -1,6 +1,6 @@
 "use client"
 
-import { DragIcon } from "@hugeicons/core-free-icons"
+import { DragIcon } from "@/components/icons"
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/lib/utils"

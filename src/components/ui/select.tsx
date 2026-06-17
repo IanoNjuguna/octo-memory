@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Tick01Icon, ArrowDown01Icon, ArrowUp01Icon } from "@hugeicons/core-free-icons"
+import { Tick01Icon, ArrowDown01Icon, ArrowUp01Icon } from "@/components/icons"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"

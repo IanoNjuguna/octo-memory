@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
+import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, Cancel01Icon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {

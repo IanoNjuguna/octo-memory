@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Tick01Icon } from "@hugeicons/core-free-icons"
+import { Tick01Icon } from "@/components/icons"
 import { Checkbox as CheckboxPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
