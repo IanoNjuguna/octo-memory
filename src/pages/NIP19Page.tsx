@@ -13,8 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { LoginArea } from '@/components/auth/LoginArea';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useGuestInvoice } from '@/hooks/useGuestInvoice';
+import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import NotFound from './NotFound';
 
@@ -70,6 +73,8 @@ function extractZapComment(event: NostrEvent): string {
 function PublicZapPage({ pubkey }: { pubkey: string }) {
   const { nostr } = useNostr();
   const { toast } = useToast();
+  const { user } = useCurrentUser();
+  const { mutateAsync: publishEvent, isPending: isPublishing } = useNostrPublish();
   const author = useAuthor(pubkey);
   const displayName = getDisplayName(author.data, pubkey);
   const lightningAddress = author.data?.metadata?.lud16 || author.data?.metadata?.lud06 || '';
@@ -77,7 +82,7 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
   const [amount, setAmount] = useState<number | string>(100);
   const [comment, setComment] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [copied, setCopied] = useState<'invoice' | 'link' | null>(null);
+  const [copied, setCopied] = useState<'invoice' | 'link' | 'post' | null>(null);
   const { invoice, isLoading: isInvoiceLoading, error: invoiceError, generate, reset } = useGuestInvoice();
 
   const { data: receipts, isLoading: receiptsLoading } = useQuery<NostrEvent[], Error>({
@@ -105,6 +110,16 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
     () => (receipts ?? []).reduce((total, event) => total + extractSatsFromReceipt(event), 0),
     [receipts],
   );
+
+  const socialPost = useMemo(() => {
+    const amountText = totalSats > 0 ? `\n\nAlready received ${totalSats.toLocaleString()} sats.` : '';
+    return [
+      `Zap ${displayName} with Bitcoin Lightning on ZapQR:`,
+      profileUrl,
+      amountText,
+      '\n#zapqr #lightning #bitcoin #nostr',
+    ].join('\n');
+  }, [displayName, profileUrl, totalSats]);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,12 +168,16 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
     await generate(lightningAddress, sats);
   };
 
-  const handleCopy = async (value: string, type: 'invoice' | 'link') => {
+  const handleCopy = async (value: string, type: 'invoice' | 'link' | 'post') => {
     await navigator.clipboard.writeText(value);
     setCopied(type);
     toast({
-      title: type === 'invoice' ? 'Invoice copied' : 'Link copied',
-      description: type === 'invoice' ? 'Paste it into any Lightning wallet.' : 'Share this ZapQR page anywhere.',
+      title: type === 'invoice' ? 'Invoice copied' : type === 'post' ? 'Post copied' : 'Link copied',
+      description: type === 'invoice'
+        ? 'Paste it into any Lightning wallet.'
+        : type === 'post'
+          ? 'Paste it into Soapbox, Ditto, or any Nostr client.'
+          : 'Share this ZapQR page anywhere.',
     });
     setTimeout(() => setCopied(null), 2000);
   };
@@ -166,7 +185,7 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
   const handleShare = async () => {
     const shareData = {
       title: `Zap ${displayName}`,
-      text: `Send a Lightning zap to ${displayName} on ZapQR.`,
+      text: socialPost,
       url: profileUrl,
     };
 
@@ -176,6 +195,33 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
     }
 
     await handleCopy(profileUrl, 'link');
+  };
+
+  const handlePublishAnnouncement = async () => {
+    try {
+      await publishEvent({
+        kind: 1,
+        content: socialPost,
+        tags: [
+          ['p', pubkey],
+          ['r', profileUrl],
+          ['t', 'zapqr'],
+          ['t', 'lightning'],
+          ['t', 'bitcoin'],
+          ['t', 'nostr'],
+        ],
+      });
+      toast({
+        title: 'Posted to Nostr',
+        description: 'Your ZapQR page is now discoverable from Nostr and Soapbox-compatible clients.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not post',
+        description: error instanceof Error ? error.message : 'Sign in and try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -212,6 +258,34 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
                   {author.data.metadata.about}
                 </p>
               )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Share on Nostr</CardTitle>
+              <CardDescription>
+                Copy or publish a Soapbox-ready post that points people to this payment page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">{socialPost}</p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button variant="outline" onClick={() => handleCopy(socialPost, 'post')} className="gap-2">
+                  {copied === 'post' ? <Tick01Icon className="h-4 w-4 text-green-600" /> : <Copy01Icon className="h-4 w-4" />}
+                  Copy Post
+                </Button>
+                {user ? (
+                  <Button onClick={handlePublishAnnouncement} disabled={isPublishing} className="gap-2">
+                    <ExternalLinkIcon className="h-4 w-4" />
+                    {isPublishing ? 'Posting...' : 'Post to Nostr'}
+                  </Button>
+                ) : (
+                  <LoginArea className="w-full" />
+                )}
+              </div>
             </CardContent>
           </Card>
 
