@@ -1,5 +1,7 @@
 # Receiving Zaps with ZapQR
 
+**Scan. Zap. Settled.**
+
 ZapQR lets you receive **Bitcoin Lightning micropayments** ("zaps") by generating
 a QR code that anyone with a Lightning wallet can scan and pay.
 
@@ -37,8 +39,19 @@ with payer identities, and embeddable QRs.
 - **[NIP-57 Zaps](nip57.md)** — Protocol details for Nostr mode
 - **[Zap Ledger](ledger.md)** — Transaction history
 - **[FAQ](faq.md)** — Common questions
-=======
-Add the address to your Nostr profile and you're ready to receive zaps.
+
+## Cypherpunk by Design
+
+- **No server** — everything runs in your browser, verifiable source
+- **No accounts** — Nostr keypair, not email/password/KYC
+- **Decentralized relays** — nobody can shut down your payment history
+- **Permissionless** — nobody can stop you from receiving
+- **Lightning-native** — peer-to-peer Bitcoin micropayments
+
+The gaps: your nsec sits in localStorage (browser security dependent), and
+invoice creation depends on an LNURL-pay service. But no server, no database,
+no logs, no tracking. The code ships as static HTML/JS — anyone can audit it
+or fork it.
 
 ## Mainnet vs Testnet
 

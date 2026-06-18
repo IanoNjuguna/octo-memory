@@ -25,8 +25,9 @@ const Index = () => {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-yellow-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-red-50 to-blue-50 dark:from-orange-950/20 dark:via-red-950/10 dark:to-blue-950/20" />
         <div className="relative max-w-4xl mx-auto px-4 py-16 md:py-24 text-center space-y-6">
+          <p className="text-sm font-medium tracking-widest uppercase text-muted-foreground">Scan. Zap. Settled.</p>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance">
             Receive Lightning Zaps{' '}
             <span className="text-primary">Instantly</span>
