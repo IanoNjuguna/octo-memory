@@ -24,6 +24,11 @@ import NotFound from './NotFound';
 
 const presetAmounts = [21, 100, 500, 1000, 5000];
 
+interface ProfileRouteData {
+  pubkey: string;
+  relays: string[];
+}
+
 function sanitizeHttpsUrl(value: string | undefined): string | undefined {
   if (!value) return undefined;
 
@@ -35,9 +40,40 @@ function sanitizeHttpsUrl(value: string | undefined): string | undefined {
   }
 }
 
-function getProfilePubkey(data: nip19.DecodedResult['data']): string | null {
-  if (typeof data === 'string') return data;
-  if ('pubkey' in data && typeof data.pubkey === 'string') return data.pubkey;
+function normalizeRelayUrl(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'wss:' && url.protocol !== 'ws:') return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function uniqueRelayUrls(relays: string[]): string[] {
+  return Array.from(
+    new Set(
+      relays
+        .map(normalizeRelayUrl)
+        .filter((relay): relay is string => Boolean(relay)),
+    ),
+  );
+}
+
+function getProfileRouteData(data: nip19.DecodedResult['data']): ProfileRouteData | null {
+  if (typeof data === 'string') {
+    return { pubkey: data, relays: [] };
+  }
+
+  if ('pubkey' in data && typeof data.pubkey === 'string') {
+    return {
+      pubkey: data.pubkey,
+      relays: 'relays' in data && Array.isArray(data.relays)
+        ? uniqueRelayUrls(data.relays.filter((relay): relay is string => typeof relay === 'string'))
+        : [],
+    };
+  }
+
   return null;
 }
 
@@ -82,7 +118,7 @@ function extractZapComment(event: NostrEvent): string {
   return '';
 }
 
-function PublicZapPage({ pubkey }: { pubkey: string }) {
+function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: string[] }) {
   const { nostr } = useNostr();
   const { toast } = useToast();
   const { user } = useCurrentUser();
@@ -97,13 +133,28 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [copied, setCopied] = useState<'invoice' | 'link' | 'post' | null>(null);
   const { invoice, isLoading: isInvoiceLoading, error: invoiceError, generate, reset } = useGuestInvoice();
+  const hintedRelayUrls = useMemo(() => uniqueRelayUrls(relayHints), [relayHints]);
 
   const { data: receipts, isLoading: receiptsLoading } = useQuery<NostrEvent[], Error>({
-    queryKey: ['nostr', 'public-zap-page', 'receipts', pubkey],
-    queryFn: ({ signal }) => nostr.query(
-      [{ kinds: [9735], '#p': [pubkey], limit: 12 }],
-      { signal },
-    ),
+    queryKey: ['nostr', 'public-zap-page', 'receipts', pubkey, hintedRelayUrls],
+    queryFn: async ({ signal }) => {
+      const filters = [{ kinds: [9735], '#p': [pubkey], limit: 12 }];
+      const poolQuery = nostr.query(filters, { signal });
+
+      if (hintedRelayUrls.length === 0) {
+        return poolQuery;
+      }
+
+      const hintedQuery = nostr.group(hintedRelayUrls).query(filters, { signal });
+      const results = await Promise.allSettled([poolQuery, hintedQuery]);
+      const events = results.flatMap((result): NostrEvent[] => (
+        result.status === 'fulfilled' ? result.value : []
+      ));
+
+      return Array.from(
+        new Map(events.map((event) => [event.id, event])).values(),
+      );
+    },
     staleTime: 30000,
   });
 
@@ -288,6 +339,16 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
                 <p className="text-sm text-muted-foreground mt-5 max-w-2xl">
                   {author.data.metadata.about}
                 </p>
+              )}
+
+              {hintedRelayUrls.length > 0 && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {hintedRelayUrls.slice(0, 4).map((relay) => (
+                    <span key={relay} className="rounded-full bg-muted px-3 py-1 text-xs font-mono text-muted-foreground">
+                      {relay.replace(/^wss?:\/\//, '')}
+                    </span>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -490,8 +551,8 @@ export function NIP19Page() {
   switch (type) {
     case 'npub':
     case 'nprofile': {
-      const pubkey = getProfilePubkey(decoded.data);
-      return pubkey ? <PublicZapPage pubkey={pubkey} /> : <NotFound />;
+      const profile = getProfileRouteData(decoded.data);
+      return profile ? <PublicZapPage pubkey={profile.pubkey} relayHints={profile.relays} /> : <NotFound />;
     }
 
     case 'note':
