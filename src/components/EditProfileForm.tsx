@@ -5,6 +5,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -21,6 +22,7 @@ import { Loading02Icon, Upload01Icon } from '@/components/icons';
 import { NSchema as n, type NostrMetadata } from '@nostrify/nostrify';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUploadFile } from '@/hooks/useUploadFile';
+import { NetworkSelector } from '@/components/NetworkSelector';
 
 export const EditProfileForm = () => {
   const queryClient = useQueryClient();
@@ -40,6 +42,8 @@ export const EditProfileForm = () => {
       banner: '',
       website: '',
       nip05: '',
+      lud16: '',
+      lud06: '',
       bot: false,
     },
   });
@@ -54,6 +58,8 @@ export const EditProfileForm = () => {
         banner: metadata.banner || '',
         website: metadata.website || '',
         nip05: metadata.nip05 || '',
+        lud16: metadata.lud16 || '',
+        lud06: metadata.lud06 || '',
         bot: metadata.bot || false,
       });
     }
@@ -232,6 +238,75 @@ export const EditProfileForm = () => {
             )}
           />
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Lightning Payments</CardTitle>
+            <CardDescription>
+              Add a Lightning Address or LNURL-pay value so ZapQR can request invoices for your profile.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <NetworkSelector compact />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="lud16"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lightning Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="you@getalby.com" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Standard Nostr `lud16` field. Use a mainnet address in mainnet mode or a testnet address in testnet mode.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lud06"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LNURL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="LNURL1..." {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Optional Nostr `lud06` fallback for wallets/providers that give you an encoded LNURL-pay value.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground space-y-2">
+              <p className="font-medium text-foreground">Need an address?</p>
+              <p>
+                ZapQR does not create a wallet or custody funds. Use Alby, LNbits, BTCPay Server, Alby Hub, or another LNURL-pay provider, then paste the address here.
+              </p>
+              <p>
+                Self-custodial works if your node exposes LNURL-pay, usually through LNbits, BTCPay, or a Lightning Address service. For testnet, the provider must return `lntb...` invoices.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href="https://getalby.com" target="_blank" rel="noopener noreferrer">Alby</a>
+                </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href="https://lnbits.com" target="_blank" rel="noopener noreferrer">LNbits</a>
+                </Button>
+                <Button type="button" variant="outline" size="sm" asChild>
+                  <a href="https://btcpayserver.org" target="_blank" rel="noopener noreferrer">BTCPay</a>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <FormField
           control={form.control}
