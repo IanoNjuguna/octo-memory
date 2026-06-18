@@ -6,14 +6,7 @@ protocol. Here's how it works under the hood.
 ## What Changes When Both Sides Are on Nostr
 
 The magic of NIP-57 zaps only fully activates when **both the sender and
-receiver** use Nostr. Here's what each combination looks like:
-
-| | Receiver: Guest Mode | Receiver: Nostr Mode |
-|---|---|---|
-| **Payer: Lightning wallet (QR scan)** | Anonymous payment. Receiver manually confirms. No record anywhere. | Payment confirmed automatically. Payer's wallet has no Nostr identity, so the receipt shows an anonymous zap. Receiver gets a ledger entry but no payer name. |
-| **Payer: Nostr client (ZapButton / NWC)** | N/A — Nostr payers need a NIP-57 zap invoice, which guest mode doesn't create. | **Full zap.** Payer's pubkey is recorded. Receiver sees who paid, gets auto-detection, ledger entry with name. Payer can prove they paid (preimage). Both sides have a verifiable receipt. |
-
-**The bottom row is the ideal flow.** When both parties are on Nostr:
+receiver** use Nostr. When both parties are on Nostr:
 
 - The payer's Nostr client fetches the LNURL invoice and pays via NWC or WebLN
 - The payer's pubkey is embedded in the signed zap request sent to the LNURL service
