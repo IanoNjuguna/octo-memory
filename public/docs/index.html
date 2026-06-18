@@ -56,10 +56,13 @@
                 color: inherit;
                 background: inherit;
             }
+            .docs-logo { position: fixed; top: 16px; left: 16px; z-index: 100; }
+            .docs-logo img { height: 28px; width: auto; }
         </style>
     </head>
     <body>
         <div id="app">Loading documentation...</div>
+        <a href="/" class="docs-logo" aria-label="Home"><img src="/logo.png" alt="ZapQR" /></a>
         <script src="docsify-config.js"></script>
         <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
         <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
