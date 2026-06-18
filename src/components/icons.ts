@@ -1,5 +1,6 @@
 import { createElement } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
+import type { IconSvgElement } from '@hugeicons/react';
 import {
   ZapIcon as _ZapIcon,
   Copy01Icon as _Copy01Icon,
@@ -50,7 +51,7 @@ function extractSize(className?: string): number {
   return parseInt(match[1], 10) * 4;
 }
 
-function wrap(iconData: unknown) {
+function wrap(iconData: IconSvgElement) {
   return function WrappedIcon({ className }: { className?: string }) {
     return createElement(HugeiconsIcon, {
       icon: iconData,

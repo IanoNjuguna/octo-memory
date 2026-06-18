@@ -199,7 +199,7 @@ export function useZaps(
       const zapAmount = amount * 1000; // convert to millisats
 
       const zapRequest = nip57.makeZapRequest({
-        profile: actualTarget.pubkey,
+        pubkey: actualTarget.pubkey,
         event: actualTarget,
         amount: zapAmount,
         relays: config.relayMetadata.relays.map(r => r.url),

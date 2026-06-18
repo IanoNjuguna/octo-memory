@@ -1,6 +1,37 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+function createStorage(): Storage {
+  const data = new Map<string, string>();
+
+  return {
+    get length() {
+      return data.size;
+    },
+    clear: vi.fn(() => data.clear()),
+    getItem: vi.fn((key: string) => data.get(key) ?? null),
+    key: vi.fn((index: number) => Array.from(data.keys())[index] ?? null),
+    removeItem: vi.fn((key: string) => {
+      data.delete(key);
+    }),
+    setItem: vi.fn((key: string, value: string) => {
+      data.set(key, String(value));
+    }),
+  };
+}
+
+const localStorageMock = createStorage();
+
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: localStorageMock,
+});
+
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  value: localStorageMock,
+});
+
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

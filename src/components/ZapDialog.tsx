@@ -432,7 +432,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto px-4 pb-4">
-            <ZapIconContent {...contentProps} />
+            <ZapContent {...contentProps} />
           </div>
         </DrawerContent>
       </Drawer>
@@ -462,7 +462,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
-          <ZapIconContent {...contentProps} />
+          <ZapContent {...contentProps} />
         </div>
       </DialogContent>
     </Dialog>

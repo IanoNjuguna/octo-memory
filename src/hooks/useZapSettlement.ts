@@ -30,12 +30,12 @@ export function useZapSettlement({
   const [receipt, setReceipt] = useState<NostrEvent | null>(null);
   const [error, setError] = useState<string | null>(null);
   const expiryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const unsubRef = useRef<(() => void) | null>(null);
+  const subscriptionAbortRef = useRef<AbortController | null>(null);
 
   const cleanup = useCallback(() => {
-    if (unsubRef.current) {
-      unsubRef.current();
-      unsubRef.current = null;
+    if (subscriptionAbortRef.current) {
+      subscriptionAbortRef.current.abort();
+      subscriptionAbortRef.current = null;
     }
     if (expiryTimeoutRef.current) {
       clearTimeout(expiryTimeoutRef.current);
@@ -81,43 +81,53 @@ export function useZapSettlement({
 
   useEffect(() => {
     if (!zapRequestId) {
-      reset();
       return;
     }
 
     // Start awaiting and set up subscription
-    setStatus('awaiting');
-    setError(null);
-    setReceipt(null);
+    queueMicrotask(() => {
+      setStatus('awaiting');
+      setError(null);
+      setReceipt(null);
+    });
 
     // Set expiry timer
     expiryTimeoutRef.current = setTimeout(() => {
       setStatus('expired');
     }, expirySeconds * 1000);
 
-    // Subscribe to real-time zap receipts for this zap request
-    const { unsub } = nostr.req(
-      [
-        {
-          kinds: [9735],
-          '#e': [zapRequestId],
-          since: Math.floor(Date.now() / 1000),
-        },
-      ],
-      {
-        onEvent: (event: NostrEvent) => {
+    const controller = new AbortController();
+    subscriptionAbortRef.current = controller;
+
+    void (async () => {
+      try {
+        const subscription = nostr.req(
+          [
+            {
+              kinds: [9735],
+              '#e': [zapRequestId],
+              since: Math.floor(Date.now() / 1000),
+            },
+          ],
+          { signal: controller.signal },
+        );
+
+        for await (const message of subscription) {
+          if (message[0] !== 'EVENT') continue;
+          const event = message[2] as NostrEvent;
           setStatus('received');
           setReceipt(event);
           cleanup();
-        },
-        onEose: () => {
-          // All stored events received. If no match yet, that's fine —
-          // we wait for new events via the subscription.
-        },
-      },
-    );
-
-    unsubRef.current = () => unsub();
+          break;
+        }
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          console.warn('Zap settlement subscription failed:', err);
+          setError('Failed to watch payment status. Try checking manually.');
+          setStatus('error');
+        }
+      }
+    })();
 
     return () => {
       // Don't clean up on unmount — let the subscription live

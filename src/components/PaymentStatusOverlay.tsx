@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { CheckmarkCircle01Icon, Clock01Icon, Alert01Icon, CancelCircleIcon, Loading02Icon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { SettlementStatus } from '@/hooks/useZapSettlement';

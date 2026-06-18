@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, RefreshIcon, CodeIcon } from '@/components/icons';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
@@ -234,13 +234,17 @@ export default function ReceiveZapPage() {
   const [comment, setComment] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [zapRequestId, setZapRequestId] = useState<string | null>(null);
+  const [createdAt] = useState(() => Math.floor(Date.now() / 1000));
 
-  const targetEvent: Event = {
+  const targetEvent: Event = useMemo(() => ({
     pubkey: user?.pubkey ?? '',
     id: user?.pubkey ?? '',
-    kind: 0, content: '', tags: [],
-    created_at: Math.floor(Date.now() / 1000), sig: '',
-  };
+    kind: 0,
+    content: '',
+    tags: [],
+    created_at: createdAt,
+    sig: '',
+  }), [createdAt, user?.pubkey]);
 
   const { zap, isZapping, invoice, resetInvoice } = useZaps(user ? targetEvent : [], webln, activeNWC);
   const { status: settlementStatus, receipt, error: settlementError, checkNow, reset: resetSettlement } = useZapSettlement({ zapRequestId });

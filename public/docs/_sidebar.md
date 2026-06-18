@@ -4,6 +4,7 @@
   - [Requirements](requirements.md)
 
 - Receiving Zaps
+  - [Public Zap Pages](public-pages.md)
   - [Creating an Invoice](creating-invoices.md)
   - [QR Codes & Embedding](qr-codes.md)
   - [Payment Status](payment-status.md)

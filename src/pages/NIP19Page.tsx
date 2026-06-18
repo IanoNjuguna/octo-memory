@@ -24,6 +24,8 @@ import { useToast } from '@/hooks/useToast';
 import NotFound from './NotFound';
 
 const presetAmounts = [21, 100, 500, 1000, 5000];
+const ZAPQR_CAMPAIGN_KIND = 30078;
+const ZAPQR_CAMPAIGN_D_PREFIX = 'pub.zapqr/campaign/';
 
 interface ProfileRouteData {
   pubkey: string;
@@ -35,6 +37,8 @@ interface CampaignData {
   description: string;
   goalSats: number;
   bannerUrl?: string;
+  identifier?: string;
+  eventId?: string;
 }
 
 function sanitizeHttpsUrl(value: string | undefined): string | undefined {
@@ -89,6 +93,15 @@ function getDisplayName(author: ReturnType<typeof useAuthor>['data'], pubkey: st
   return author?.metadata?.display_name || author?.metadata?.name || `${pubkey.slice(0, 8)}...${pubkey.slice(-4)}`;
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || 'Z';
+}
+
 function extractSatsFromReceipt(event: NostrEvent): number {
   const amountTag = event.tags.find(([name]) => name === 'amount')?.[1];
   if (amountTag) return Math.floor(parseInt(amountTag, 10) / 1000);
@@ -118,6 +131,27 @@ function extractZapComment(event: NostrEvent): string {
       typeof parsed.content === 'string'
     ) {
       return parsed.content;
+    }
+  } catch {
+    return '';
+  }
+
+  return '';
+}
+
+function extractPayerPubkey(event: NostrEvent): string {
+  const description = event.tags.find(([name]) => name === 'description')?.[1];
+  if (!description) return '';
+
+  try {
+    const parsed: unknown = JSON.parse(description);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'pubkey' in parsed &&
+      typeof parsed.pubkey === 'string'
+    ) {
+      return parsed.pubkey;
     }
   } catch {
     return '';
@@ -159,7 +193,102 @@ function buildCampaignUrl(baseUrl: string, campaign: CampaignData): string {
   return url.toString();
 }
 
-function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: string[] }) {
+function slugifyCampaignTitle(title: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+  return slug || 'campaign';
+}
+
+function parseCampaignEvent(event: NostrEvent): CampaignData | null {
+  if (event.kind !== ZAPQR_CAMPAIGN_KIND) return null;
+
+  const identifier = event.tags.find(([name]) => name === 'd')?.[1];
+  if (!identifier?.startsWith(ZAPQR_CAMPAIGN_D_PREFIX)) return null;
+
+  const title = event.tags.find(([name]) => name === 'title')?.[1]?.trim();
+  const goal = parseInt(event.tags.find(([name]) => name === 'goal')?.[1] ?? '', 10);
+
+  if (!title || !Number.isFinite(goal) || goal <= 0) return null;
+
+  return {
+    title: title.slice(0, 90),
+    description: (event.tags.find(([name]) => name === 'summary')?.[1] ?? event.content).trim().slice(0, 500),
+    goalSats: goal,
+    bannerUrl: sanitizeHttpsUrl(event.tags.find(([name]) => name === 'image')?.[1]),
+    identifier,
+    eventId: event.id,
+  };
+}
+
+function buildShareCardSvg({
+  title,
+  subtitle,
+  displayName,
+  totalSats,
+  goalSats,
+}: {
+  title: string;
+  subtitle: string;
+  displayName: string;
+  totalSats: number;
+  goalSats?: number;
+}): string {
+  const escapeSvg = (value: string) => value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const progressText = goalSats
+    ? `${totalSats.toLocaleString()} / ${goalSats.toLocaleString()} sats`
+    : `${totalSats.toLocaleString()} sats received`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#111827"/>
+  <rect x="56" y="56" width="1088" height="518" rx="36" fill="#f8fafc"/>
+  <circle cx="154" cy="154" r="58" fill="#f59e0b"/>
+  <text x="154" y="174" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="42" font-weight="800" fill="#111827">${escapeSvg(getInitials(displayName))}</text>
+  <text x="244" y="130" font-family="Inter, Arial, sans-serif" font-size="28" fill="#64748b">ZapQR</text>
+  <text x="244" y="178" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="800" fill="#111827">${escapeSvg(displayName)}</text>
+  <text x="92" y="300" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="900" fill="#111827">${escapeSvg(title)}</text>
+  <text x="92" y="362" font-family="Inter, Arial, sans-serif" font-size="30" fill="#475569">${escapeSvg(subtitle)}</text>
+  <rect x="92" y="430" width="500" height="76" rx="20" fill="#fef3c7"/>
+  <text x="126" y="480" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="800" fill="#92400e">${escapeSvg(progressText)}</text>
+  <text x="92" y="548" font-family="Inter, Arial, sans-serif" font-size="24" fill="#64748b">Bitcoin Lightning payments with Nostr receipts</text>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function PayerInfo({ pubkey }: { pubkey: string }) {
+  const payer = useAuthor(pubkey);
+  const name = payer.data?.metadata?.display_name || payer.data?.metadata?.name;
+
+  if (payer.isLoading) {
+    return (
+      <span className="flex items-center gap-2">
+        <Skeleton className="size-6 rounded-full" />
+        <Skeleton className="h-3 w-20" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-2 min-w-0">
+      <UserAvatar pubkey={pubkey} size="sm" />
+      <span className="truncate">{name || `${pubkey.slice(0, 8)}...`}</span>
+    </span>
+  );
+}
+
+function PublicZapPage({
+  pubkey,
+  relayHints,
+  campaignEvent,
+}: {
+  pubkey: string;
+  relayHints: string[];
+  campaignEvent?: CampaignData | null;
+}) {
   const { nostr } = useNostr();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -173,7 +302,8 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     ? `${window.location.origin}${window.location.pathname}`
     : '';
   const profileImage = sanitizeHttpsUrl(author.data?.metadata?.picture);
-  const campaign = useMemo(() => parseCampaign(searchParams), [searchParams]);
+  const urlCampaign = useMemo(() => parseCampaign(searchParams), [searchParams]);
+  const campaign = campaignEvent ?? urlCampaign;
   const [amount, setAmount] = useState<number | string>(100);
   const [comment, setComment] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -214,6 +344,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
         id: event.id,
         amount: extractSatsFromReceipt(event),
         comment: extractZapComment(event),
+        payerPubkey: extractPayerPubkey(event),
         createdAt: event.created_at,
       }))
       .sort((a, b) => b.createdAt - a.createdAt)
@@ -237,6 +368,14 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     ? `Send a Bitcoin Lightning zap to ${displayName} at ${lightningAddress}.`
     : `View ${displayName}'s public ZapQR payment page.`;
 
+  const shareCardImage = buildShareCardSvg({
+    title: campaign?.title ?? `Zap ${displayName}`,
+    subtitle: campaign?.description || seoDescription,
+    displayName,
+    totalSats,
+    goalSats: campaign?.goalSats,
+  });
+
   useSeoMeta({
     title: campaign ? `${campaign.title} — ZapQR` : `Zap ${displayName} — ZapQR`,
     description: seoDescription,
@@ -244,11 +383,11 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     ogDescription: seoDescription,
     ogType: campaign ? 'website' : 'profile',
     ogUrl: profileUrl,
-    ogImage: campaign?.bannerUrl ?? profileImage,
+    ogImage: campaign?.bannerUrl ?? shareCardImage ?? profileImage,
     twitterCard: campaign?.bannerUrl || profileImage ? 'summary_large_image' : 'summary',
     twitterTitle: campaign ? `${campaign.title} — ZapQR` : `Zap ${displayName} — ZapQR`,
     twitterDescription: seoDescription,
-    twitterImage: campaign?.bannerUrl ?? profileImage,
+    twitterImage: campaign?.bannerUrl ?? shareCardImage ?? profileImage,
   });
 
   const socialPost = useMemo(() => {
@@ -391,6 +530,68 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
       bannerUrl,
     });
     await handleCopy(campaignUrl, 'link');
+  };
+
+  const handlePublishCampaign = async () => {
+    const goal = typeof campaignGoal === 'string' ? parseInt(campaignGoal, 10) : campaignGoal;
+    const bannerUrl = sanitizeHttpsUrl(campaignBanner.trim());
+    const title = campaignTitle.trim();
+
+    if (!title || !goal || goal <= 0) {
+      toast({
+        title: 'Campaign details missing',
+        description: 'Add a title and a positive goal amount.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (campaignBanner.trim() && !bannerUrl) {
+      toast({
+        title: 'Invalid banner URL',
+        description: 'Use an HTTPS image URL for the campaign banner.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const identifier = `${ZAPQR_CAMPAIGN_D_PREFIX}${slugifyCampaignTitle(title)}`;
+    try {
+      const event = await publishEvent({
+        kind: ZAPQR_CAMPAIGN_KIND,
+        content: campaignDescription.trim(),
+        tags: [
+          ['d', identifier],
+          ['title', title],
+          ['summary', campaignDescription.trim()],
+          ['goal', String(goal), 'sats'],
+          ['p', pubkey],
+          ['r', baseProfileUrl],
+          ['t', 'zapqr'],
+          ['t', 'fundraising'],
+          ['alt', `ZapQR fundraising campaign: ${title}`],
+          ...(bannerUrl ? [['image', bannerUrl] as [string, string]] : []),
+        ],
+      });
+
+      const campaignNaddr = nip19.naddrEncode({
+        kind: ZAPQR_CAMPAIGN_KIND,
+        pubkey: event.pubkey,
+        identifier,
+        relays: hintedRelayUrls,
+      });
+      await handleCopy(`${window.location.origin}/${campaignNaddr}`, 'link');
+      toast({
+        title: 'Campaign published',
+        description: 'The Nostr campaign link was copied to your clipboard.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Could not publish campaign',
+        description: error instanceof Error ? error.message : 'Sign in and try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handlePublishAnnouncement = async () => {
@@ -538,7 +739,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
             <CardHeader>
               <CardTitle>Campaign Link</CardTitle>
               <CardDescription>
-                Create a shareable fundraiser URL for this profile without publishing a custom event.
+                Create a URL-backed campaign or publish a NIP-78 campaign event.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -571,6 +772,14 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
                 <Copy01Icon className="h-4 w-4" />
                 Copy Campaign URL
               </Button>
+              {user ? (
+                <Button onClick={handlePublishCampaign} disabled={isPublishing} className="w-full gap-2">
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  {isPublishing ? 'Publishing...' : 'Publish Nostr Campaign'}
+                </Button>
+              ) : (
+                <LoginArea className="w-full" />
+              )}
             </CardContent>
           </Card>
 
@@ -606,6 +815,11 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-semibold">{receipt.amount.toLocaleString()} sats</p>
+                          {receipt.payerPubkey && (
+                            <div className="text-sm text-muted-foreground">
+                              <PayerInfo pubkey={receipt.payerPubkey} />
+                            </div>
+                          )}
                           {receipt.comment && (
                             <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                               &ldquo;{receipt.comment}&rdquo;
@@ -725,6 +939,64 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
   );
 }
 
+function CampaignEventPage({
+  pubkey,
+  identifier,
+  relayHints,
+}: {
+  pubkey: string;
+  identifier: string;
+  relayHints: string[];
+}) {
+  const { nostr } = useNostr();
+  const hintedRelayUrls = useMemo(() => uniqueRelayUrls(relayHints), [relayHints]);
+  const { data: event, isLoading, error } = useQuery<NostrEvent | null, Error>({
+    queryKey: ['nostr', 'zapqr-campaign', pubkey, identifier, hintedRelayUrls],
+    queryFn: async ({ signal }) => {
+      const filters = [{
+        kinds: [ZAPQR_CAMPAIGN_KIND],
+        authors: [pubkey],
+        '#d': [identifier],
+        limit: 1,
+      }];
+      const poolQuery = nostr.query(filters, { signal });
+
+      if (hintedRelayUrls.length === 0) {
+        const events = await poolQuery;
+        return events[0] ?? null;
+      }
+
+      const hintedQuery = nostr.group(hintedRelayUrls).query(filters, { signal });
+      const results = await Promise.allSettled([poolQuery, hintedQuery]);
+      const events = results.flatMap((result): NostrEvent[] => (
+        result.status === 'fulfilled' ? result.value : []
+      ));
+      return events.sort((a, b) => b.created_at - a.created_at)[0] ?? null;
+    },
+    staleTime: 30000,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen max-w-5xl mx-auto px-4 py-8 md:py-12 space-y-6">
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return <NotFound />;
+  }
+
+  const campaign = parseCampaignEvent(event);
+  if (!campaign) {
+    return <NotFound />;
+  }
+
+  return <PublicZapPage pubkey={event.pubkey} relayHints={hintedRelayUrls} campaignEvent={campaign} />;
+}
+
 export function NIP19Page() {
   const { nip19: identifier } = useParams<{ nip19: string }>();
 
@@ -756,9 +1028,13 @@ export function NIP19Page() {
       // AI agent should implement event view here
       return <div>Event placeholder</div>;
 
-    case 'naddr':
-      // AI agent should implement addressable event view here
-      return <div>Addressable event placeholder</div>;
+    case 'naddr': {
+      const { kind, pubkey, identifier, relays } = decoded.data;
+      if (kind !== ZAPQR_CAMPAIGN_KIND || !identifier.startsWith(ZAPQR_CAMPAIGN_D_PREFIX)) {
+        return <NotFound />;
+      }
+      return <CampaignEventPage pubkey={pubkey} identifier={identifier} relayHints={uniqueRelayUrls(relays ?? [])} />;
+    }
 
     default:
       return <NotFound />;

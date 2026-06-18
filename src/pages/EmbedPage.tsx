@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ZapIcon } from '@/components/icons';
 import { useGuestInvoice } from '@/hooks/useGuestInvoice';
@@ -12,17 +12,17 @@ export default function EmbedPage() {
   const amount = parseInt(amountParam, 10) || 100;
 
   const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [hasGenerated, setHasGenerated] = useState(false);
+  const hasGeneratedRef = useRef(false);
 
   const { invoice, isLoading, error, generate, isConfirmed } = useGuestInvoice();
 
   // Auto-generate invoice on mount
   useEffect(() => {
-    if (lud16 && !hasGenerated) {
-      setHasGenerated(true);
+    if (lud16 && !hasGeneratedRef.current) {
+      hasGeneratedRef.current = true;
       generate(lud16, amount);
     }
-  }, [lud16, amount, generate, hasGenerated]);
+  }, [lud16, amount, generate]);
 
   // Generate QR when invoice is ready
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function EmbedPage() {
   }
 
   // Loading
-  if (isLoading || !hasGenerated) {
+  if (isLoading || (!invoice && !error)) {
     return (
       <div className={containerClass}>
         <div className="flex flex-col items-center gap-4 w-full max-w-[260px]">

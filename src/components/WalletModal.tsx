@@ -113,7 +113,7 @@ const WalletContent = ({
         {/* NWC */}
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="flex items-center gap-3">
-            <Wallet01IconMinimal className="h-4 w-4 text-muted-foreground" />
+            <Wallet01Icon className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium">Nostr Wallet Connect</p>
               <p className="text-xs text-muted-foreground">
@@ -156,7 +156,7 @@ const WalletContent = ({
             return (
               <div key={connection.connectionString} className={`flex items-center justify-between p-3 border rounded-lg ${isActive ? 'ring-2 ring-primary' : ''}`}>
                 <div className="flex items-center gap-3">
-                  <Wallet01IconMinimal className="h-4 w-4 text-muted-foreground" />
+                  <Wallet01Icon className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">
                       {connection.alias || info?.alias || 'Lightning Wallet'}
@@ -330,7 +330,7 @@ export function WalletModal({ children, className }: WalletModalProps) {
               </DrawerDescription>
             </DrawerHeader>
             <div className="overflow-y-auto">
-              <Wallet01IconContent {...walletContentProps} />
+              <WalletContent {...walletContentProps} />
             </div>
           </DrawerContent>
         </Drawer>
@@ -385,7 +385,7 @@ export function WalletModal({ children, className }: WalletModalProps) {
               Connect your lightning wallet to send zaps instantly.
             </DialogDescription>
           </DialogHeader>
-          <Wallet01IconContent {...walletContentProps} />
+          <WalletContent {...walletContentProps} />
         </DialogContent>
       </Dialog>
       {addWalletDialog}
