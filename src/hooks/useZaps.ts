@@ -11,6 +11,7 @@ import type { WebLNProvider } from '@webbtc/webln-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
+import { assertInvoiceNetwork } from '@/lib/lightningNetwork';
 import { proxiedFetch } from '@/lib/utils';
 
 export function useZaps(
@@ -224,6 +225,7 @@ export function useZaps(
             if (!newInvoice || typeof newInvoice !== 'string') {
               throw new Error('Lightning service did not return a valid invoice');
             }
+            assertInvoiceNetwork(newInvoice, config.lightningNetwork);
 
             // Get the current active NWC connection dynamically
             const currentNWCConnection = getActiveConnection();

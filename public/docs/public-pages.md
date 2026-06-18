@@ -11,6 +11,19 @@ Supported routes:
 Public pages show the profile name, avatar, Lightning address, QR invoice form,
 recent zap receipts, supporter details, relay hints, and sharing controls.
 
+## Mainnet and Testnet
+
+ZapQR has a Lightning Network switch for **Mainnet** and **Testnet**. The switch
+does not convert a mainnet Lightning address into a testnet one. It guards the
+invoice that comes back from the LNURL provider:
+
+- mainnet mode accepts `lnbc...` invoices
+- testnet mode accepts `lntb...` invoices
+
+If a provider returns the wrong invoice type, ZapQR rejects it before showing a
+QR code. For testnet demos, use a testnet LNURL/Lightning address from a testnet
+provider.
+
 ## Sharing to Nostr and Soapbox/Ditto
 
 The public page includes:

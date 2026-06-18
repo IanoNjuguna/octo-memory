@@ -23,6 +23,7 @@ export function TestApp({ children }: TestAppProps) {
 
   const defaultConfig: AppConfig = {
     theme: 'light',
+    lightningNetwork: 'mainnet',
     relayMetadata: {
       relays: [
         { url: 'wss://relay.primal.net', read: true, write: true },

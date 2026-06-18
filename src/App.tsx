@@ -35,6 +35,7 @@ const queryClient = new QueryClient({
 
 const defaultConfig: AppConfig = {
   theme: "light",
+  lightningNetwork: "mainnet",
   relayMetadata: APP_RELAYS,
   blossomServerMetadata: {
     servers: [

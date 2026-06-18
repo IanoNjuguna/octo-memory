@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Separator } from '@/components/ui/separator';
+import { NetworkSelector } from '@/components/NetworkSelector';
 
 const Index = () => {
   useSeoMeta({
@@ -59,6 +60,9 @@ const Index = () => {
             ) : (
               <LoginArea className="max-w-60" />
             )}
+          </div>
+          <div className="max-w-md mx-auto pt-2">
+            <NetworkSelector />
           </div>
         </div>
       </section>

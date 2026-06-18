@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Progress } from '@/components/ui/progress';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { NetworkSelector } from '@/components/NetworkSelector';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useGuestInvoice } from '@/hooks/useGuestInvoice';
@@ -856,6 +857,8 @@ function PublicZapPage({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
+            <NetworkSelector compact />
+
             <div className="space-y-1">
               <p className="text-sm font-medium">Lightning address</p>
               {author.isLoading ? (

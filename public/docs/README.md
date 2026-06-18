@@ -25,6 +25,7 @@ a QR code that anyone with a Lightning wallet can scan and pay.
 Nostr mode gives you automatic payment confirmation, a full transaction ledger
 with payer identities, and embeddable QRs.
 
+<<<<<<< HEAD
 ---
 
 - **[Quick Start](getting-started.md)** — Get up and running
@@ -36,3 +37,12 @@ with payer identities, and embeddable QRs.
 - **[NIP-57 Zaps](nip57.md)** — Protocol details for Nostr mode
 - **[Zap Ledger](ledger.md)** — Transaction history
 - **[FAQ](faq.md)** — Common questions
+=======
+Add the address to your Nostr profile and you're ready to receive zaps.
+
+## Mainnet vs Testnet
+
+ZapQR defaults to mainnet. Use the Lightning Network selector to switch to
+testnet for demos. Testnet mode requires a testnet LNURL/Lightning address and
+will reject mainnet `lnbc...` invoices.
+>>>>>>> 18c7d27 (Add Lightning network selector)

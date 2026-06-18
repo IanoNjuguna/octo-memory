@@ -18,6 +18,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useZapSettlement } from '@/hooks/useZapSettlement';
 import { PaymentStatusOverlay } from '@/components/PaymentStatusOverlay';
 import { LoginArea } from '@/components/auth/LoginArea';
+import { NetworkSelector } from '@/components/NetworkSelector';
 import type { Event } from 'nostr-tools';
 import type { SettlementStatus } from '@/hooks/useZapSettlement';
 import QRCode from 'qrcode';
@@ -311,6 +312,8 @@ export default function ReceiveZapPage() {
           Generate a Lightning invoice QR code. Anyone with a Lightning wallet can scan and pay instantly.
         </p>
       </div>
+
+      <NetworkSelector />
 
       {!user ? (
         <Card className="border-dashed">

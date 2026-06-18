@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react';
+import { useAppContext } from '@/hooks/useAppContext';
+import { assertInvoiceNetwork } from '@/lib/lightningNetwork';
 import { proxiedFetch } from '@/lib/utils';
 
 interface LNURLPayMetadata {
@@ -33,6 +35,7 @@ function parseLud16(lud16: string): { name: string; domain: string } | null {
 
 /** LNURL-pay invoice generator — used by the embed page. */
 export function useGuestInvoice(): UseGuestInvoiceReturn {
+  const { config } = useAppContext();
   const [state, setState] = useState<GuestInvoiceState>({
     invoice: null, paymentHash: null, isLoading: false, error: null,
   });
@@ -64,12 +67,13 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
       const invData = await invRes.json();
       if (invData.status === 'ERROR') throw new Error(invData.reason || 'Invoice creation failed.');
       if (!invData.pr) throw new Error('No invoice returned.');
+      assertInvoiceNetwork(invData.pr, config.lightningNetwork);
 
       setState({ invoice: invData.pr, paymentHash: invData.payment_hash || null, isLoading: false, error: null });
     } catch (err) {
       setState({ invoice: null, paymentHash: null, isLoading: false, error: err instanceof Error ? err.message : 'Unexpected error.' });
     }
-  }, []);
+  }, [config.lightningNetwork]);
 
   const reset = useCallback(() => {
     setState({ invoice: null, paymentHash: null, isLoading: false, error: null });
