@@ -14,7 +14,6 @@
   - [WebLN](webln.md)
 
 - Reference
-  - [Nostr vs Guest](tradeoffs.md)
   - [NIP-57 Zaps](nip57.md)
   - [Zap Ledger](ledger.md)
   - [FAQ](faq.md)

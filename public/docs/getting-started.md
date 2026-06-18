@@ -1,25 +1,40 @@
 # Quick Start
 
-ZapQR offers two modes: **Nostr** (auto-detection + ledger) and **Guest** (no login required).
+## 1. Log in with Nostr
 
-## Guest Mode (No Login)
+Click **Log in** and sign in with:
 
-1. Go to [octo-pay.vercel.app/receive](https://octo-pay.vercel.app/receive)
-2. Select the **Guest** tab
-3. Paste your Lightning address (e.g., `you@getalby.com`)
-4. Enter an amount and tap **Generate QR Code**
-5. Share the QR — the payer scans and pays with any Lightning wallet
-6. Tap **"I Received the Payment"** once the sats arrive in your wallet
+- A **Nostr browser extension** (Alby, nos2x, Flamingo)
+- An **nsec key** (paste your private key)
+- A **remote signer** (NIP-46 bunker / nostrconnect)
 
-> Get a free Lightning address from [Alby](https://getalby.com) or [LNbits](https://lnbits.com).
+> New to Nostr? Create a free account at [primal.net](https://primal.net).
 
-## Nostr Mode (Auto-Detection + Ledger)
+## 2. Set up a Lightning Address
 
-1. **Log in with Nostr** — Use a browser extension (Alby, nos2x), nsec key, or remote signer.
-2. **Set up a Lightning address** — Add `lud16` (e.g., `you@getalby.com`) to your Nostr profile.
-3. **Go to Receive** — Select the **Nostr Account** tab, enter an amount.
-4. **Generate QR** — Tap "Generate QR Code".
-5. **Share and get paid** — Confirmation appears automatically within seconds.
+You need a Lightning address (`lud16`) in your Nostr profile. Get a free one from:
+
+- **[Alby](https://getalby.com)** — Your address will be `yourname@getalby.com`
+- **[LNbits](https://lnbits.com)** — Self-host or use a cloud instance
+
+Add the address to your Nostr profile metadata as the `lud16` field.
+
+## 3. Navigate to Receive
+
+Go to [octo-pay.vercel.app/receive](https://octo-pay.vercel.app/receive) and
+enter an amount in satoshis (1 sat = 1/100,000,000 BTC).
+
+## 4. Generate QR Code
+
+Tap **"Generate QR Code"**. A BOLT11 Lightning invoice QR appears on screen.
+The invoice is signed with your Nostr key and sent to your LNURL-pay endpoint.
+
+## 5. Share and Get Paid
+
+Show the QR to a payer — they scan it with any Lightning wallet and pay.
+ZapQR detects the payment on Nostr relays within seconds and shows a confirmation.
+The transaction is recorded in your [Zap Ledger](https://octo-pay.vercel.app/ledger)
+with the payer's Nostr identity.
 
 ---
 

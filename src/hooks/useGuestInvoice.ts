@@ -31,12 +31,10 @@ function parseLud16(lud16: string): { name: string; domain: string } | null {
   return { name: parts[0], domain: parts[1] };
 }
 
+/** LNURL-pay invoice generator — used by the embed page. */
 export function useGuestInvoice(): UseGuestInvoiceReturn {
   const [state, setState] = useState<GuestInvoiceState>({
-    invoice: null,
-    paymentHash: null,
-    isLoading: false,
-    error: null,
+    invoice: null, paymentHash: null, isLoading: false, error: null,
   });
   const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -45,71 +43,31 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
     setIsConfirmed(false);
 
     try {
-      // Step 1: parse lud16
       const parsed = parseLud16(lud16);
-      if (!parsed) {
-        throw new Error(
-          'Invalid Lightning address format. Use the format name@domain.com (e.g., you@getalby.com)',
-        );
-      }
+      if (!parsed) throw new Error('Invalid Lightning address format.');
 
-      // Step 2: resolve LNURL-pay endpoint
+      // Resolve LNURL-pay endpoint
       const lnurlpUrl = `https://${parsed.domain}/.well-known/lnurlp/${parsed.name}`;
-      let metadata: LNURLPayMetadata;
-
       const res = await proxiedFetch(lnurlpUrl);
-      if (!res.ok) {
-        const hint = res.status === 404
-          ? `"${parsed.name}@${parsed.domain}" could not be found. Make sure this is your real Lightning address (e.g., from Alby or LNbits), not the placeholder.`
-          : `Check that your address is correct (HTTP ${res.status}).`;
-        throw new Error(hint);
-      }
+      if (!res.ok) throw new Error(`Lightning address not found (HTTP ${res.status}).`);
       const data = await res.json();
-      if (data.status === 'ERROR') {
-        throw new Error(data.reason || 'Lightning service returned an error.');
-      }
-      metadata = data;
+      if (data.status === 'ERROR') throw new Error(data.reason || 'Service error.');
 
-      // Step 3: validate amount against limits
-      const amountMillisats = amountSats * 1000;
-      if (amountMillisats < metadata.minSendable) {
-        const min = Math.ceil(metadata.minSendable / 1000);
-        throw new Error(`Amount too small. Minimum is ${min} sats for this address.`);
-      }
-      if (amountMillisats > metadata.maxSendable) {
-        const max = Math.floor(metadata.maxSendable / 1000);
-        throw new Error(`Amount too large. Maximum is ${max} sats for this address.`);
-      }
+      const metadata: LNURLPayMetadata = data;
+      const msats = amountSats * 1000;
+      if (msats < metadata.minSendable) throw new Error(`Minimum is ${Math.ceil(metadata.minSendable / 1000)} sats.`);
+      if (msats > metadata.maxSendable) throw new Error(`Maximum is ${Math.floor(metadata.maxSendable / 1000)} sats.`);
 
-      // Step 4: request invoice from callback
-      const invoiceUrl = `${metadata.callback}?amount=${amountMillisats}`;
-      const invRes = await proxiedFetch(invoiceUrl);
-      if (!invRes.ok) {
-        throw new Error(`Failed to create invoice (HTTP ${invRes.status}).`);
-      }
+      // Get invoice
+      const invRes = await proxiedFetch(`${metadata.callback}?amount=${msats}`);
+      if (!invRes.ok) throw new Error(`Failed to create invoice (HTTP ${invRes.status}).`);
       const invData = await invRes.json();
-      if (invData.status === 'ERROR') {
-        throw new Error(invData.reason || 'Failed to create invoice.');
-      }
-      if (!invData.pr || typeof invData.pr !== 'string') {
-        throw new Error('Lightning service did not return a valid invoice.');
-      }
+      if (invData.status === 'ERROR') throw new Error(invData.reason || 'Invoice creation failed.');
+      if (!invData.pr) throw new Error('No invoice returned.');
 
-      setState({
-        invoice: invData.pr,
-        paymentHash: invData.payment_hash || null,
-        isLoading: false,
-        error: null,
-      });
+      setState({ invoice: invData.pr, paymentHash: invData.payment_hash || null, isLoading: false, error: null });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
-      console.error('Guest invoice generation failed:', err);
-      setState({
-        invoice: null,
-        paymentHash: null,
-        isLoading: false,
-        error: message,
-      });
+      setState({ invoice: null, paymentHash: null, isLoading: false, error: err instanceof Error ? err.message : 'Unexpected error.' });
     }
   }, []);
 
@@ -118,15 +76,7 @@ export function useGuestInvoice(): UseGuestInvoiceReturn {
     setIsConfirmed(false);
   }, []);
 
-  const confirmPayment = useCallback(() => {
-    setIsConfirmed(true);
-  }, []);
+  const confirmPayment = useCallback(() => setIsConfirmed(true), []);
 
-  return {
-    ...state,
-    generate,
-    reset,
-    confirmPayment,
-    isConfirmed,
-  };
+  return { ...state, generate, reset, confirmPayment, isConfirmed };
 }
