@@ -21,13 +21,9 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-yellow-950/20" />
         <div className="relative max-w-4xl mx-auto px-4 py-16 md:py-24 text-center space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 dark:bg-amber-900/50 px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-200">
-            <ZapIcon className="h-4 w-4" />
-            Bitcoin Lightning Micropayments
-          </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance">
             Receive Lightning Zaps{' '}
-            <span className="text-amber-500">Instantly</span>
+            <span className="text-primary">Instantly</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
             Generate a QR code, share it anywhere, and receive Bitcoin micropayments
