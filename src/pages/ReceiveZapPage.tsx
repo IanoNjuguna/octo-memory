@@ -406,16 +406,23 @@ function PasteInvoiceCard() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!invoice) { setQrCodeUrl(''); return; }
+    if (!invoice) return;
     let cancelled = false;
     (async () => {
       try {
         const url = await QRCode.toDataURL(invoice.toUpperCase(), { width: 512, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } });
         if (!cancelled) setQrCodeUrl(url);
-      } catch { setQrCodeUrl(''); }
+      } catch {
+        if (!cancelled) setQrCodeUrl('');
+      }
     })();
     return () => { cancelled = true; };
   }, [invoice]);
+
+  const handleInvoiceChange = (value: string) => {
+    setInvoice(value);
+    if (!value) setQrCodeUrl('');
+  };
 
   const handleCopy = async () => {
     if (!invoice) return;
@@ -439,7 +446,7 @@ function PasteInvoiceCard() {
         <Input
           placeholder="lnbc100n1p3qzyxqpp5..."
           value={invoice}
-          onChange={(e) => setInvoice(e.target.value)}
+              onChange={(e) => handleInvoiceChange(e.target.value)}
           className="font-mono text-xs w-full"
         />
 

@@ -7,7 +7,7 @@ export function ThemeToggle() {
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const toggle = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
+    () => {
       const btn = btnRef.current;
       if (!btn) return;
 
@@ -28,7 +28,6 @@ export function ThemeToggle() {
 
       const next = theme === 'dark' ? 'light' : 'dark';
 
-      // @ts-expect-error — View Transitions API
       const transition = document.startViewTransition(() => {
         setTheme(next);
       });
