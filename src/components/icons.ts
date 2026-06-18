@@ -42,6 +42,8 @@ import {
   CircleIcon as _CircleIcon,
   MoreHorizontalIcon as _MoreHorizontalIcon,
   Search01Icon as _Search01Icon,
+  SunIcon as _SunIcon,
+  Moon02Icon as _Moon02Icon,
 } from '@hugeicons/core-free-icons';
 
 function extractSize(className?: string): number {
@@ -102,3 +104,5 @@ export const DragIcon = wrap(_DragIcon);
 export const CircleIcon = wrap(_CircleIcon);
 export const MoreHorizontalIcon = wrap(_MoreHorizontalIcon);
 export const Search01Icon = wrap(_Search01Icon);
+export const SunIcon = wrap(_SunIcon);
+export const Moon02Icon = wrap(_Moon02Icon);

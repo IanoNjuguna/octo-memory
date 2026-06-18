@@ -14,6 +14,7 @@ import { AppProvider } from '@/components/AppProvider';
 import { AppConfig } from '@/contexts/AppContext';
 import { NWCProvider } from '@/contexts/NWCContext';
 import { APP_RELAYS } from '@/lib/appRelays';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import AppRouter from './AppRouter';
 
 const head = createHead({
@@ -60,6 +61,7 @@ export function App() {
                 <Suspense>
                   <AppRouter />
                 </Suspense>
+                <ThemeToggle />
                 </TooltipProvider>
               </NWCProvider>
             </NostrProvider>
