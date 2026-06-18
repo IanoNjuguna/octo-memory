@@ -345,7 +345,8 @@ export default function ReceiveZapPage() {
               <a href="https://getalby.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">Alby</a>
               {' '}(yourname@getalby.com) or{' '}
               <a href="https://lnbits.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">LNbits</a>
-              . Add it to your Nostr profile as the <code>lud16</code> field.
+              . Then update it in your{' '}
+              <a href="/profile" className="underline text-primary hover:text-primary/80 font-medium">profile settings</a>.
             </p>
           </CardContent>
         </Card>
