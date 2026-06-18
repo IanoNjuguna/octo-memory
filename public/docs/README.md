@@ -3,27 +3,36 @@
 ZapQR lets you receive **Bitcoin Lightning micropayments** ("zaps") by generating
 a QR code that anyone with a Lightning wallet can scan and pay.
 
-## How It Works
+## Two Ways to Receive
 
-1. **Log in with Nostr** — Use a browser extension, nsec key, or remote signer
-2. **Set up a Lightning address** — Add `lud16` (e.g., `you@getalby.com`) to your Nostr profile
-3. **Enter an amount** — Choose from presets or enter a custom amount in satoshis
-4. **Generate QR** — A BOLT11 Lightning invoice QR appears
-5. **Share and get paid** — Payer scans with any Lightning wallet, you see confirmation in seconds
+### Paste an Invoice (Works with Any Wallet)
 
-## Why Nostr?
+1. Open your Lightning wallet (Wallet of Satoshi, Phoenix, BlueWallet, etc.)
+2. Tap **Receive** and enter an amount
+3. Copy the BOLT11 invoice string
+4. Paste it into ZapQR — a QR code appears instantly
+5. Share the QR with the payer
 
-- **Auto payment detection** — ZapQR subscribes to Nostr relays and confirms payment in 1–5 seconds
-- **Full transaction ledger** — Every zap is recorded with payer identity and timestamps
-- **Payer identity** — Know who paid you (Nostr pubkey)
-- **Verifiable receipts** — Cryptographic proof of payment published to relays
-- **Social proof** — Zaps are publicly visible on Nostr
+> Zero setup, no Lightning address, no Nostr login. Works with every wallet.
 
-## Getting a Lightning Address
+### Nostr Mode (Auto-Detection + Ledger)
 
-Your Nostr profile needs a `lud16` field (Lightning address). Get one free from:
+1. Log in with your Nostr account that has a Lightning address (`lud16`)
+2. Enter an amount and optional message
+3. Tap **Generate QR Code**
+4. Share the QR — ZapQR auto-detects payment in seconds
 
-- **[Alby](https://getalby.com)** — Sign up, your address is `yourname@getalby.com`
-- **[LNbits](https://lnbits.com)** — Self-host or use a cloud instance
+Nostr mode gives you automatic payment confirmation, a full transaction ledger
+with payer identities, and embeddable QRs.
 
-Add the address to your Nostr profile and you're ready to receive zaps.
+---
+
+- **[Quick Start](getting-started.md)** — Get up and running
+- **[Requirements](requirements.md)** — What you need
+- **[Creating an Invoice](creating-invoices.md)** — How invoices are generated
+- **[QR Codes & Embedding](qr-codes.md)** — QR formats, deep links, copy fallback, embedding
+- **[Payment Status](payment-status.md)** — Awaiting, received, and expired states
+- **[Lightning Address](lightning-address.md)** — Set up Alby or LNbits
+- **[NIP-57 Zaps](nip57.md)** — Protocol details for Nostr mode
+- **[Zap Ledger](ledger.md)** — Transaction history
+- **[FAQ](faq.md)** — Common questions

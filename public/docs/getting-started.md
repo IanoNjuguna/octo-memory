@@ -1,40 +1,24 @@
 # Quick Start
 
-## 1. Log in with Nostr
+ZapQR offers two ways to receive payments.
 
-Click **Log in** and sign in with:
+## Paste an Invoice (No Setup)
 
-- A **Nostr browser extension** (Alby, nos2x, Flamingo)
-- An **nsec key** (paste your private key)
-- A **remote signer** (NIP-46 bunker / nostrconnect)
+1. Open your Lightning wallet (Wallet of Satoshi, Phoenix, etc.)
+2. Tap **Receive**, enter an amount, get a BOLT11 invoice
+3. Copy the invoice and go to [octo-pay.vercel.app/receive](https://octo-pay.vercel.app/receive)
+4. Paste it into the **"Got an invoice already?"** card
+5. A QR code appears — share it with the payer
 
-> New to Nostr? Create a free account at [primal.net](https://primal.net).
+> Works with every Lightning wallet. No account required.
 
-## 2. Set up a Lightning Address
+## Nostr Mode (Auto-Detection)
 
-You need a Lightning address (`lud16`) in your Nostr profile. Get a free one from:
-
-- **[Alby](https://getalby.com)** — Your address will be `yourname@getalby.com`
-- **[LNbits](https://lnbits.com)** — Self-host or use a cloud instance
-
-Add the address to your Nostr profile metadata as the `lud16` field.
-
-## 3. Navigate to Receive
-
-Go to [octo-pay.vercel.app/receive](https://octo-pay.vercel.app/receive) and
-enter an amount in satoshis (1 sat = 1/100,000,000 BTC).
-
-## 4. Generate QR Code
-
-Tap **"Generate QR Code"**. A BOLT11 Lightning invoice QR appears on screen.
-The invoice is signed with your Nostr key and sent to your LNURL-pay endpoint.
-
-## 5. Share and Get Paid
-
-Show the QR to a payer — they scan it with any Lightning wallet and pay.
-ZapQR detects the payment on Nostr relays within seconds and shows a confirmation.
-The transaction is recorded in your [Zap Ledger](https://octo-pay.vercel.app/ledger)
-with the payer's Nostr identity.
+1. **Log in with Nostr** — Use a browser extension (Alby, nos2x), nsec key, or remote signer
+2. **Set up a Lightning address** — Add `lud16` to your Nostr profile (get one free from [Alby](https://getalby.com) or [LNbits](https://lnbits.com))
+3. **Go to Receive** — [octo-pay.vercel.app/receive](https://octo-pay.vercel.app/receive), enter an amount
+4. **Generate QR** — Tap "Generate QR Code"
+5. **Share and get paid** — ZapQR auto-detects payment in seconds, records it in your ledger
 
 ---
 

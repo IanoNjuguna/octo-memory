@@ -1,12 +1,18 @@
 # Requirements
 
-## For You (the recipient)
+## Paste Invoice Mode
+
+- Any **Lightning wallet** that can generate a BOLT11 invoice
+- A **modern web browser**
+- **No account required**
+
+## Nostr Mode
 
 - A **Nostr account** with a Lightning address (`lud16` or `lud06`) in your profile
 - A **modern web browser** (Chrome, Firefox, Safari, Edge)
 - An **internet connection** to reach Nostr relays
 
-## For Payers
+## For Payers (either mode)
 
 - Any **Lightning-enabled Bitcoin wallet**
 - A **camera** to scan the QR code (or the ability to paste an invoice string)
