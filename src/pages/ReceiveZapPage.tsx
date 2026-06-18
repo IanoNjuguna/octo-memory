@@ -379,6 +379,80 @@ export default function ReceiveZapPage() {
           }
         />
       )}
+
+      <Separator />
+
+      <PasteInvoiceCard />
     </div>
+  );
+}
+
+function PasteInvoiceCard() {
+  const { toast } = useToast();
+  const [invoice, setInvoice] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!invoice) { setQrCodeUrl(''); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const url = await QRCode.toDataURL(invoice.toUpperCase(), { width: 512, margin: 2, color: { dark: '#000000', light: '#FFFFFF' } });
+        if (!cancelled) setQrCodeUrl(url);
+      } catch { setQrCodeUrl(''); }
+    })();
+    return () => { cancelled = true; };
+  }, [invoice]);
+
+  const handleCopy = async () => {
+    if (!invoice) return;
+    await navigator.clipboard.writeText(invoice);
+    setCopied(true);
+    toast({ title: 'Invoice copied' });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleOpenWallet = () => invoice && window.open(`lightning:${invoice}`, '_blank');
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Got an invoice already?</CardTitle>
+        <CardDescription>
+          Paste any BOLT11 Lightning invoice below to turn it into a QR code. Works with Wallet of Satoshi, Phoenix, or any wallet.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Input
+          placeholder="lnbc100n1p3qzyxqpp5..."
+          value={invoice}
+          onChange={(e) => setInvoice(e.target.value)}
+          className="font-mono text-xs w-full"
+        />
+
+        {invoice && qrCodeUrl && (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="flex justify-center">
+              <Card className="p-3 max-w-[85vw] md:max-w-[240px]">
+                <CardContent className="p-0 flex justify-center">
+                  <img src={qrCodeUrl} alt="QR Code" className="w-full h-auto aspect-square object-contain rounded" />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCopy} className="flex-1 gap-1">
+                {copied ? <Tick01Icon className="h-3.5 w-3.5 text-green-600" /> : <Copy01Icon className="h-3.5 w-3.5" />}
+                {copied ? 'Copied' : 'Copy Invoice'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleOpenWallet} className="flex-1 gap-1">
+                <ExternalLinkIcon className="h-3.5 w-3.5" />
+                Open in Wallet
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
