@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
+import { nip19 } from 'nostr-tools';
 import { ZapIcon, ScanIcon, ArrowRight01Icon, Wallet01Icon, QrCodeIcon, LeftToRightListBulletIcon, BookOpen01Icon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +15,10 @@ const Index = () => {
   });
 
   const { user } = useCurrentUser();
+  const publicProfilePath = user ? `/${nip19.npubEncode(user.pubkey)}` : '/receive';
+  const demoCampaignPath = user
+    ? `/${nip19.npubEncode(user.pubkey)}?title=Hackathon%20Demo&goal=10000&description=Support%20this%20ZapQR%20demo`
+    : '/receive';
 
   return (
     <div className="min-h-screen">
@@ -59,6 +64,61 @@ const Index = () => {
       </section>
 
       <Separator />
+
+      {user && (
+        <section className="max-w-5xl mx-auto px-4 py-12 space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Public Tools</h2>
+            <p className="text-muted-foreground max-w-2xl">
+              These are the Soapbox/Nostr sharing features. They live on your public Nostr profile route, not on the private receive screen.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <QrCodeIcon className="h-6 w-6 text-amber-500" />
+                <div>
+                  <h3 className="font-semibold">Public Zap Page</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    View the page other people can open to zap your Nostr profile.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={publicProfilePath}>Open Public Page</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <ZapIcon className="h-6 w-6 text-amber-500" />
+                <div>
+                  <h3 className="font-semibold">Campaign Demo</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Open a sample campaign URL with goal, progress, supporters, and sharing.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={demoCampaignPath}>Open Campaign</Link>
+                </Button>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <Wallet01Icon className="h-6 w-6 text-amber-500" />
+                <div>
+                  <h3 className="font-semibold">Profile Setup</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Add your Lightning address so ZapQR can create invoices.
+                  </p>
+                </div>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/profile">Edit Profile</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* How It Works */}
       <section className="max-w-5xl mx-auto px-4 py-16 md:py-20 space-y-10">

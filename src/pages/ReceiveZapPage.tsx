@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { ZapIcon, Copy01Icon, Tick01Icon, ExternalLinkIcon, StarIcon, Rocket01Icon, ArrowLeft01Icon, RefreshIcon, CodeIcon } from '@/components/icons';
 import { useSeoMeta } from '@unhead/react';
 import { Button } from '@/components/ui/button';
@@ -340,7 +341,7 @@ export default function ReceiveZapPage() {
           <CardHeader>
             <CardTitle>Lightning Address Required</CardTitle>
             <CardDescription>
-              Add a Lightning address to your Nostr profile to generate invoices.
+              ZapQR uses the Lightning address already stored on your Nostr profile. It does not create a custodial wallet or issue a new address.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -352,6 +353,14 @@ export default function ReceiveZapPage() {
               . Then update it in your{' '}
               <a href="/profile" className="underline text-primary hover:text-primary/80 font-medium">profile settings</a>.
             </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button asChild>
+                <Link to="/profile">Add Lightning Address</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="/docs/lightning-address.md">How It Works</a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : invoice ? (
