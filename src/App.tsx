@@ -61,6 +61,9 @@ export function App() {
                 <Suspense>
                   <AppRouter />
                 </Suspense>
+                <a href="/" className="fixed top-4 right-4 z-50" aria-label="Home">
+                  <img src="/logo.png" alt="ZapQR" className="h-8 w-auto" />
+                </a>
                 <ThemeToggle />
                 </TooltipProvider>
               </NWCProvider>
