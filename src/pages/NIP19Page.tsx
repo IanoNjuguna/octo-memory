@@ -4,7 +4,7 @@ import { useSeoMeta } from '@unhead/react';
 import { nip19, nip57 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { Copy01Icon, ExternalLinkIcon, QrCodeIcon, Tick01Icon, ZapIcon } from '@/components/icons';
 import { UserAvatar } from '@/components/UserAvatar';
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Progress } from '@/components/ui/progress';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
@@ -27,6 +28,13 @@ const presetAmounts = [21, 100, 500, 1000, 5000];
 interface ProfileRouteData {
   pubkey: string;
   relays: string[];
+}
+
+interface CampaignData {
+  title: string;
+  description: string;
+  goalSats: number;
+  bannerUrl?: string;
 }
 
 function sanitizeHttpsUrl(value: string | undefined): string | undefined {
@@ -118,8 +126,42 @@ function extractZapComment(event: NostrEvent): string {
   return '';
 }
 
+function parseCampaign(searchParams: URLSearchParams): CampaignData | null {
+  const title = searchParams.get('title')?.trim();
+  const goal = parseInt(searchParams.get('goal') ?? '', 10);
+
+  if (!title || !Number.isFinite(goal) || goal <= 0) {
+    return null;
+  }
+
+  return {
+    title: title.slice(0, 90),
+    description: (searchParams.get('description') ?? '').trim().slice(0, 500),
+    goalSats: goal,
+    bannerUrl: sanitizeHttpsUrl(searchParams.get('banner') ?? undefined),
+  };
+}
+
+function buildCampaignUrl(baseUrl: string, campaign: CampaignData): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set('title', campaign.title);
+  url.searchParams.set('goal', String(campaign.goalSats));
+  if (campaign.description) {
+    url.searchParams.set('description', campaign.description);
+  } else {
+    url.searchParams.delete('description');
+  }
+  if (campaign.bannerUrl) {
+    url.searchParams.set('banner', campaign.bannerUrl);
+  } else {
+    url.searchParams.delete('banner');
+  }
+  return url.toString();
+}
+
 function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: string[] }) {
   const { nostr } = useNostr();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useCurrentUser();
   const { mutateAsync: publishEvent, isPending: isPublishing } = useNostrPublish();
@@ -127,11 +169,19 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
   const displayName = getDisplayName(author.data, pubkey);
   const lightningAddress = author.data?.metadata?.lud16 || author.data?.metadata?.lud06 || '';
   const profileUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const baseProfileUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}${window.location.pathname}`
+    : '';
   const profileImage = sanitizeHttpsUrl(author.data?.metadata?.picture);
+  const campaign = useMemo(() => parseCampaign(searchParams), [searchParams]);
   const [amount, setAmount] = useState<number | string>(100);
   const [comment, setComment] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [copied, setCopied] = useState<'invoice' | 'link' | 'post' | null>(null);
+  const [campaignTitle, setCampaignTitle] = useState(campaign?.title ?? '');
+  const [campaignGoal, setCampaignGoal] = useState<number | string>(campaign?.goalSats ?? 10000);
+  const [campaignDescription, setCampaignDescription] = useState(campaign?.description ?? '');
+  const [campaignBanner, setCampaignBanner] = useState(campaign?.bannerUrl ?? '');
   const { invoice, isLoading: isInvoiceLoading, error: invoiceError, generate, reset } = useGuestInvoice();
   const hintedRelayUrls = useMemo(() => uniqueRelayUrls(relayHints), [relayHints]);
 
@@ -174,26 +224,45 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     () => (receipts ?? []).reduce((total, event) => total + extractSatsFromReceipt(event), 0),
     [receipts],
   );
+  const progressPercent = campaign
+    ? Math.min(100, Math.round((totalSats / campaign.goalSats) * 100))
+    : 0;
+  const remainingSats = campaign
+    ? Math.max(0, campaign.goalSats - totalSats)
+    : 0;
 
-  const seoDescription = lightningAddress
+  const seoDescription = campaign
+    ? `${campaign.title}: ${totalSats.toLocaleString()} of ${campaign.goalSats.toLocaleString()} sats raised on ZapQR.`
+    : lightningAddress
     ? `Send a Bitcoin Lightning zap to ${displayName} at ${lightningAddress}.`
     : `View ${displayName}'s public ZapQR payment page.`;
 
   useSeoMeta({
-    title: `Zap ${displayName} — ZapQR`,
+    title: campaign ? `${campaign.title} — ZapQR` : `Zap ${displayName} — ZapQR`,
     description: seoDescription,
-    ogTitle: `Zap ${displayName} — ZapQR`,
+    ogTitle: campaign ? `${campaign.title} — ZapQR` : `Zap ${displayName} — ZapQR`,
     ogDescription: seoDescription,
-    ogType: 'profile',
+    ogType: campaign ? 'website' : 'profile',
     ogUrl: profileUrl,
-    ogImage: profileImage,
-    twitterCard: profileImage ? 'summary_large_image' : 'summary',
-    twitterTitle: `Zap ${displayName} — ZapQR`,
+    ogImage: campaign?.bannerUrl ?? profileImage,
+    twitterCard: campaign?.bannerUrl || profileImage ? 'summary_large_image' : 'summary',
+    twitterTitle: campaign ? `${campaign.title} — ZapQR` : `Zap ${displayName} — ZapQR`,
     twitterDescription: seoDescription,
-    twitterImage: profileImage,
+    twitterImage: campaign?.bannerUrl ?? profileImage,
   });
 
   const socialPost = useMemo(() => {
+    if (campaign) {
+      const progressText = `${totalSats.toLocaleString()} / ${campaign.goalSats.toLocaleString()} sats raised`;
+      return [
+        `${campaign.title}`,
+        campaign.description,
+        progressText,
+        profileUrl,
+        '\n#zapqr #lightning #bitcoin #nostr',
+      ].filter(Boolean).join('\n\n');
+    }
+
     const amountText = totalSats > 0 ? `\n\nAlready received ${totalSats.toLocaleString()} sats.` : '';
     return [
       `Zap ${displayName} with Bitcoin Lightning on ZapQR:`,
@@ -201,7 +270,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
       amountText,
       '\n#zapqr #lightning #bitcoin #nostr',
     ].join('\n');
-  }, [displayName, profileUrl, totalSats]);
+  }, [campaign, displayName, profileUrl, totalSats]);
 
   useEffect(() => {
     let cancelled = false;
@@ -266,7 +335,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
 
   const handleShare = async () => {
     const shareData = {
-      title: `Zap ${displayName}`,
+      title: campaign ? campaign.title : `Zap ${displayName}`,
       text: socialPost,
       url: profileUrl,
     };
@@ -277,6 +346,51 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     }
 
     await handleCopy(profileUrl, 'link');
+  };
+
+  const handleShareToDitto = async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: campaign ? campaign.title : `Zap ${displayName}`,
+        text: socialPost,
+        url: profileUrl,
+      });
+      return;
+    }
+
+    await handleCopy(socialPost, 'post');
+  };
+
+  const handleCopyCampaignUrl = async () => {
+    const goal = typeof campaignGoal === 'string' ? parseInt(campaignGoal, 10) : campaignGoal;
+    const bannerUrl = sanitizeHttpsUrl(campaignBanner.trim());
+    const title = campaignTitle.trim();
+
+    if (!title || !goal || goal <= 0) {
+      toast({
+        title: 'Campaign details missing',
+        description: 'Add a title and a positive goal amount.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (campaignBanner.trim() && !bannerUrl) {
+      toast({
+        title: 'Invalid banner URL',
+        description: 'Use an HTTPS image URL for the campaign banner.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const campaignUrl = buildCampaignUrl(baseProfileUrl, {
+      title,
+      goalSats: goal,
+      description: campaignDescription.trim(),
+      bannerUrl,
+    });
+    await handleCopy(campaignUrl, 'link');
   };
 
   const handlePublishAnnouncement = async () => {
@@ -310,6 +424,41 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
     <div className="min-h-screen max-w-5xl mx-auto px-4 py-8 md:py-12 space-y-6">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6">
+          {campaign && (
+            <Card className="overflow-hidden">
+              {campaign.bannerUrl && (
+                <div className="aspect-[3/1] w-full overflow-hidden bg-muted">
+                  <img src={campaign.bannerUrl} alt="" className="h-full w-full object-cover" />
+                </div>
+              )}
+              <CardHeader>
+                <CardTitle className="text-3xl tracking-tight">{campaign.title}</CardTitle>
+                {campaign.description && (
+                  <CardDescription className="text-base">
+                    {campaign.description}
+                  </CardDescription>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Progress value={progressPercent} />
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Raised</p>
+                    <p className="font-semibold">{totalSats.toLocaleString()} sats</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Goal</p>
+                    <p className="font-semibold">{campaign.goalSats.toLocaleString()} sats</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Remaining</p>
+                    <p className="font-semibold">{remainingSats.toLocaleString()} sats</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -357,7 +506,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
             <CardHeader>
               <CardTitle>Share on Nostr</CardTitle>
               <CardDescription>
-                Copy or publish a Soapbox-ready post that points people to this payment page.
+                Copy, publish, or send this page through Ditto's native share target.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -369,6 +518,10 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
                   {copied === 'post' ? <Tick01Icon className="h-4 w-4 text-green-600" /> : <Copy01Icon className="h-4 w-4" />}
                   Copy Post
                 </Button>
+                <Button variant="outline" onClick={handleShareToDitto} className="gap-2">
+                  <ExternalLinkIcon className="h-4 w-4" />
+                  Share to Ditto
+                </Button>
                 {user ? (
                   <Button onClick={handlePublishAnnouncement} disabled={isPublishing} className="gap-2">
                     <ExternalLinkIcon className="h-4 w-4" />
@@ -378,6 +531,46 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
                   <LoginArea className="w-full" />
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Link</CardTitle>
+              <CardDescription>
+                Create a shareable fundraiser URL for this profile without publishing a custom event.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Input
+                value={campaignTitle}
+                onChange={(event) => setCampaignTitle(event.target.value)}
+                placeholder="Campaign title"
+                maxLength={90}
+              />
+              <Input
+                type="number"
+                value={campaignGoal}
+                onChange={(event) => setCampaignGoal(event.target.value)}
+                min={1}
+                placeholder="Goal in sats"
+              />
+              <Textarea
+                value={campaignDescription}
+                onChange={(event) => setCampaignDescription(event.target.value)}
+                rows={3}
+                placeholder="Campaign description"
+                maxLength={500}
+              />
+              <Input
+                value={campaignBanner}
+                onChange={(event) => setCampaignBanner(event.target.value)}
+                placeholder="Optional HTTPS banner image URL"
+              />
+              <Button variant="outline" onClick={handleCopyCampaignUrl} className="w-full gap-2">
+                <Copy01Icon className="h-4 w-4" />
+                Copy Campaign URL
+              </Button>
             </CardContent>
           </Card>
 
@@ -442,7 +635,7 @@ function PublicZapPage({ pubkey, relayHints }: { pubkey: string; relayHints: str
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <QrCodeIcon className="h-5 w-5 text-amber-500" />
-              Zap {displayName}
+              {campaign ? 'Support Campaign' : `Zap ${displayName}`}
             </CardTitle>
             <CardDescription>
               Generate a Lightning invoice and pay with any wallet.
