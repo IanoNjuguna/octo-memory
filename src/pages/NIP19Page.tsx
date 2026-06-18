@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSeoMeta } from '@unhead/react';
 import { nip19, nip57 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { useNostr } from '@nostrify/react';
@@ -22,6 +23,17 @@ import { useToast } from '@/hooks/useToast';
 import NotFound from './NotFound';
 
 const presetAmounts = [21, 100, 500, 1000, 5000];
+
+function sanitizeHttpsUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' ? url.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function getProfilePubkey(data: nip19.DecodedResult['data']): string | null {
   if (typeof data === 'string') return data;
@@ -79,6 +91,7 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
   const displayName = getDisplayName(author.data, pubkey);
   const lightningAddress = author.data?.metadata?.lud16 || author.data?.metadata?.lud06 || '';
   const profileUrl = typeof window !== 'undefined' ? window.location.href : '';
+  const profileImage = sanitizeHttpsUrl(author.data?.metadata?.picture);
   const [amount, setAmount] = useState<number | string>(100);
   const [comment, setComment] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -110,6 +123,24 @@ function PublicZapPage({ pubkey }: { pubkey: string }) {
     () => (receipts ?? []).reduce((total, event) => total + extractSatsFromReceipt(event), 0),
     [receipts],
   );
+
+  const seoDescription = lightningAddress
+    ? `Send a Bitcoin Lightning zap to ${displayName} at ${lightningAddress}.`
+    : `View ${displayName}'s public ZapQR payment page.`;
+
+  useSeoMeta({
+    title: `Zap ${displayName} — ZapQR`,
+    description: seoDescription,
+    ogTitle: `Zap ${displayName} — ZapQR`,
+    ogDescription: seoDescription,
+    ogType: 'profile',
+    ogUrl: profileUrl,
+    ogImage: profileImage,
+    twitterCard: profileImage ? 'summary_large_image' : 'summary',
+    twitterTitle: `Zap ${displayName} — ZapQR`,
+    twitterDescription: seoDescription,
+    twitterImage: profileImage,
+  });
 
   const socialPost = useMemo(() => {
     const amountText = totalSats > 0 ? `\n\nAlready received ${totalSats.toLocaleString()} sats.` : '';
